@@ -5,10 +5,7 @@ catalogue (with size × colour variants), control stock across warehouses, raise
 purchase orders, and fulfil sales with automatic stock deduction and printable
 BDT invoices — all behind a role-based login.
 
-> **RONG** (রং — “colour”) is a placeholder brand name. Change it anywhere it
-> appears (mainly `src/app/layout.tsx`, the login page, the sidebar brand, and
-> the invoice header) to rebrand.
-
+> **RONG** (রং — “colour”) is a placeholder brand name.
 ---
 
 ## ✨ Features
@@ -62,7 +59,6 @@ npm run db:seed
 npm run dev
 ```
 
-Open **http://localhost:3000** — you'll be redirected to the login screen.
 
 ### Demo accounts (seeded)
 
