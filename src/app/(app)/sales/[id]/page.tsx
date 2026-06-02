@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
 import { formatBDT, formatDate } from "@/lib/format";
 import { SO_STATUS_LABEL, type SalesOrderStatus } from "@/lib/enums";
 import { Card } from "@/components/ui/card";
 import { Badge, statusTone } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { PrintButton } from "@/components/app/print-button";
+import { DeleteButton } from "@/components/ui/delete-button";
+import { deleteSalesOrder } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +20,7 @@ export default async function SalesOrderInvoicePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const [, { id }] = await Promise.all([requireUser(), params]);
+  const [session, { id }] = await Promise.all([requireUser(), params]);
 
   const order = await prisma.salesOrder.findUnique({
     where: { id },
@@ -40,7 +43,20 @@ export default async function SalesOrderInvoicePage({
         >
           <ChevronLeft className="size-4" /> Sales orders
         </Link>
-        <PrintButton />
+        <div className="flex items-center gap-2">
+          {canDelete(session.role) && (
+            <DeleteButton
+              entity="sale"
+              name={order.orderNumber}
+              description="The sold stock will be returned to inventory."
+              action={async () => {
+                "use server";
+                await deleteSalesOrder(order.id);
+              }}
+            />
+          )}
+          <PrintButton />
+        </div>
       </div>
 
       <Card className="animate-rise overflow-hidden p-8 sm:p-10">

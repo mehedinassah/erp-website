@@ -43,13 +43,15 @@ export async function updateSupplier(
   redirect("/suppliers");
 }
 
+/** Admin only. Blocks deletion when purchase-order history exists. */
 export async function deleteSupplier(id: string) {
-  await requireRole(["ADMIN", "MANAGER"]);
+  await requireRole(["ADMIN"]);
   const count = await prisma.purchaseOrder.count({ where: { supplierId: id } });
   if (count > 0) {
     // Keep referential history; don't hard-delete suppliers with POs.
-    return;
+    redirect("/suppliers?blocked=1");
   }
   await prisma.supplier.delete({ where: { id } });
   revalidatePath("/suppliers");
+  redirect("/suppliers?deleted=1");
 }

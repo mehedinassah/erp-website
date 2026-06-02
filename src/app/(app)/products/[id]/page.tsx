@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, Pencil, Archive, ArchiveRestore } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, canManage } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
 import { formatBDT, formatNumber } from "@/lib/format";
 import { PageHeader } from "@/components/app/page-header";
 import {
@@ -14,7 +15,8 @@ import {
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Badge, statusTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { archiveProduct } from "../actions";
+import { DeleteButton } from "@/components/ui/delete-button";
+import { archiveProduct, deleteProduct } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +52,7 @@ export default async function ProductDetailPage({
       ? Math.round(((product.sellPrice - product.costPrice) / product.sellPrice) * 100)
       : 0;
   const manage = canManage(session.role);
+  const allowDelete = canDelete(session.role);
 
   return (
     <div>
@@ -90,6 +93,17 @@ export default async function ProductDetailPage({
                 <Pencil className="size-4" /> Edit
               </Link>
             </Button>
+            {allowDelete && (
+              <DeleteButton
+                entity="product"
+                name={product.name}
+                description="Products with sales or purchase history are archived instead of deleted, to preserve records."
+                action={async () => {
+                  "use server";
+                  await deleteProduct(product.id);
+                }}
+              />
+            )}
           </>
         )}
       </PageHeader>

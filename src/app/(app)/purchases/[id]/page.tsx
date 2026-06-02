@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, PackageCheck, Ban } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, canManage } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
 import { formatBDT, formatDate } from "@/lib/format";
 import { PO_STATUS_LABEL, type PurchaseOrderStatus } from "@/lib/enums";
 import { PageHeader } from "@/components/app/page-header";
@@ -10,7 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Badge, statusTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { receivePurchaseOrder, cancelPurchaseOrder } from "../actions";
+import { DeleteButton } from "@/components/ui/delete-button";
+import {
+  receivePurchaseOrder,
+  cancelPurchaseOrder,
+  deletePurchaseOrder,
+} from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +80,17 @@ export default async function PurchaseOrderDetailPage({
               </Button>
             </form>
           </>
+        )}
+        {canDelete(session.role) && (
+          <DeleteButton
+            entity="purchase order"
+            name={po.poNumber}
+            description="Any stock already received from this order will be reversed."
+            action={async () => {
+              "use server";
+              await deletePurchaseOrder(po.id);
+            }}
+          />
         )}
       </PageHeader>
 

@@ -137,3 +137,50 @@ export async function createSalesOrder(
   revalidatePath("/");
   redirect(`/sales/${id}`);
 }
+
+/** Admin only. Deletes a sale and restores the sold stock to the warehouse. */
+export async function deleteSalesOrder(id: string) {
+  await requireRole(["ADMIN"]);
+
+  const so = await prisma.salesOrder.findUnique({
+    where: { id },
+    include: { items: true },
+  });
+  if (!so) redirect("/sales");
+
+  await prisma.$transaction(async (tx) => {
+    for (const it of so.items) {
+      const level = await tx.stockLevel.findUnique({
+        where: {
+          variantId_warehouseId: {
+            variantId: it.variantId,
+            warehouseId: so.warehouseId,
+          },
+        },
+      });
+      if (level) {
+        await tx.stockLevel.update({
+          where: { id: level.id },
+          data: { quantity: level.quantity + it.quantity },
+        });
+      } else {
+        await tx.stockLevel.create({
+          data: {
+            variantId: it.variantId,
+            warehouseId: so.warehouseId,
+            quantity: it.quantity,
+          },
+        });
+      }
+    }
+    await tx.stockMovement.deleteMany({
+      where: { referenceType: "SALES_ORDER", referenceId: so.id },
+    });
+    await tx.salesOrder.delete({ where: { id: so.id } }); // cascades items
+  });
+
+  revalidatePath("/sales");
+  revalidatePath("/stock");
+  revalidatePath("/");
+  redirect("/sales?deleted=1");
+}

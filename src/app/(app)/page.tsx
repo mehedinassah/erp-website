@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { canViewFinancials } from "@/lib/permissions";
 import {
   formatBDT,
   formatBDTCompact,
@@ -139,6 +140,7 @@ async function getData() {
 export default async function DashboardPage() {
   const [session, d] = await Promise.all([requireUser(), getData()]);
   const firstName = session.name.split(" ")[0];
+  const showFinancials = canViewFinancials(session.role);
 
   return (
     <div>
@@ -160,15 +162,19 @@ export default async function DashboardPage() {
       </PageHeader>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Revenue · last 30 days"
-          value={formatBDT(d.revenue30)}
-          hint={`${d.orderCount30} orders fulfilled`}
-          icon={Banknote}
-          tone="gold"
-          delay={0}
-        />
+      <div
+        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showFinancials ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}
+      >
+        {showFinancials && (
+          <StatCard
+            label="Revenue · last 30 days"
+            value={formatBDT(d.revenue30)}
+            hint={`${d.orderCount30} orders fulfilled`}
+            icon={Banknote}
+            tone="gold"
+            delay={0}
+          />
+        )}
         <StatCard
           label="Units in stock"
           value={formatNumber(d.totalUnits)}
@@ -195,17 +201,22 @@ export default async function DashboardPage() {
 
       {/* Charts */}
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="animate-rise lg:col-span-2" style={{ animationDelay: "120ms" }}>
-          <CardHeader>
-            <CardTitle>Sales trend</CardTitle>
-            <CardDescription>Daily fulfilled revenue · last 30 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SalesArea data={d.trend} />
-          </CardContent>
-        </Card>
+        {showFinancials && (
+          <Card className="animate-rise lg:col-span-2" style={{ animationDelay: "120ms" }}>
+            <CardHeader>
+              <CardTitle>Sales trend</CardTitle>
+              <CardDescription>Daily fulfilled revenue · last 30 days</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SalesArea data={d.trend} />
+            </CardContent>
+          </Card>
+        )}
 
-        <Card className="animate-rise" style={{ animationDelay: "200ms" }}>
+        <Card
+          className={`animate-rise ${showFinancials ? "" : "lg:col-span-3"}`}
+          style={{ animationDelay: "200ms" }}
+        >
           <CardHeader>
             <CardTitle>Top categories</CardTitle>
             <CardDescription>Units sold · last 30 days</CardDescription>

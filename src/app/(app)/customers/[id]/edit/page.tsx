@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
 import { PageHeader } from "@/components/app/page-header";
 import { ContactForm } from "@/components/app/contact-form";
-import { updateCustomer } from "../../actions";
+import { DeleteButton } from "@/components/ui/delete-button";
+import { updateCustomer, deleteCustomer } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +16,7 @@ export default async function EditCustomerPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireUser();
+  const session = await requireUser();
   const { id } = await params;
   const customer = await prisma.customer.findUnique({ where: { id } });
   if (!customer) notFound();
@@ -27,7 +29,19 @@ export default async function EditCustomerPage({
       >
         <ChevronLeft className="size-4" /> Customers
       </Link>
-      <PageHeader eyebrow="Sales" title="Edit customer" />
+      <PageHeader eyebrow="Sales" title="Edit customer">
+        {canDelete(session.role) && (
+          <DeleteButton
+            entity="customer"
+            name={customer.name}
+            description="Their past orders are kept and marked as walk-in."
+            action={async () => {
+              "use server";
+              await deleteCustomer(customer.id);
+            }}
+          />
+        )}
+      </PageHeader>
       <ContactForm
         action={updateCustomer.bind(null, customer.id)}
         submitLabel="Save changes"

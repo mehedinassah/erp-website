@@ -161,3 +161,44 @@ export async function cancelPurchaseOrder(id: string) {
   revalidatePath("/purchases");
   revalidatePath(`/purchases/${id}`);
 }
+
+/** Admin only. Deletes a PO; reverses any received stock first. */
+export async function deletePurchaseOrder(id: string) {
+  await requireRole(["ADMIN"]);
+
+  const po = await prisma.purchaseOrder.findUnique({
+    where: { id },
+    include: { items: true },
+  });
+  if (!po) redirect("/purchases");
+
+  await prisma.$transaction(async (tx) => {
+    for (const it of po.items) {
+      if (it.receivedQty > 0) {
+        const level = await tx.stockLevel.findUnique({
+          where: {
+            variantId_warehouseId: {
+              variantId: it.variantId,
+              warehouseId: po.warehouseId,
+            },
+          },
+        });
+        if (level) {
+          await tx.stockLevel.update({
+            where: { id: level.id },
+            data: { quantity: Math.max(0, level.quantity - it.receivedQty) },
+          });
+        }
+      }
+    }
+    await tx.stockMovement.deleteMany({
+      where: { referenceType: "PURCHASE_ORDER", referenceId: po.id },
+    });
+    await tx.purchaseOrder.delete({ where: { id: po.id } }); // cascades items
+  });
+
+  revalidatePath("/purchases");
+  revalidatePath("/stock");
+  revalidatePath("/");
+  redirect("/purchases?deleted=1");
+}

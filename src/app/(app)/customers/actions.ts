@@ -41,3 +41,15 @@ export async function updateCustomer(
   revalidatePath("/customers");
   redirect("/customers");
 }
+
+/** Admin only. Detaches the customer from their orders (kept as walk-in). */
+export async function deleteCustomer(id: string) {
+  await requireRole(["ADMIN"]);
+  await prisma.salesOrder.updateMany({
+    where: { customerId: id },
+    data: { customerId: null },
+  });
+  await prisma.customer.delete({ where: { id } });
+  revalidatePath("/customers");
+  redirect("/customers?deleted=1");
+}

@@ -155,3 +155,33 @@ export async function archiveProduct(id: string) {
   revalidatePath("/products");
   revalidatePath(`/products/${id}`);
 }
+
+/** Admin only. Hard-deletes a product (and its variants/stock). If the product
+ *  has sales or purchase history it is archived instead, to preserve records. */
+export async function deleteProduct(id: string) {
+  await requireRole(["ADMIN"]);
+
+  const variants = await prisma.variant.findMany({
+    where: { productId: id },
+    select: { id: true },
+  });
+  const variantIds = variants.map((v) => v.id);
+
+  const [soItems, poItems] = await Promise.all([
+    prisma.sOItem.count({ where: { variantId: { in: variantIds } } }),
+    prisma.pOItem.count({ where: { variantId: { in: variantIds } } }),
+  ]);
+
+  if (soItems > 0 || poItems > 0) {
+    // Has transaction history — archive instead of destroying records
+    await prisma.product.update({ where: { id }, data: { status: "ARCHIVED" } });
+    revalidatePath("/products");
+    revalidatePath(`/products/${id}`);
+    redirect("/products?archived=1");
+  }
+
+  // Cascades to variants → stock levels & movements
+  await prisma.product.delete({ where: { id } });
+  revalidatePath("/products");
+  redirect("/products?deleted=1");
+}
