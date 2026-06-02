@@ -1,0 +1,258 @@
+// RONG Inventory — Prisma schema
+// Stack note: Prisma 7 `prisma-client` generator (ESM). Import from "@/generated/prisma/client".
+// DB: SQLite for instant local dev. To switch to PostgreSQL:
+//   1. set datasource provider = "postgresql"
+//   2. set DATABASE_URL to your Postgres connection string
+//   3. run `npm run db:push && npm run db:seed`
+// SQLite has no native enums or Decimal precision guarantees, so:
+//   - status/role fields are validated Strings (see src/lib/enums.ts)
+//   - all money is stored as Int (whole BDT taka)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// Auth
+// ----------------------------------------------------------------------------
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("STAFF") // ADMIN | MANAGER | STAFF
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  stockMovements StockMovement[]
+  purchaseOrders PurchaseOrder[]
+  salesOrders    SalesOrder[]
+}
+
+// ----------------------------------------------------------------------------
+// Catalog
+// ----------------------------------------------------------------------------
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  products  Product[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  sku         String   @unique
+  description String?
+  gender      String   @default("UNISEX") // MEN | WOMEN | UNISEX | KIDS
+  season      String?
+  material    String?
+  costPrice   Int      @default(0) // BDT
+  sellPrice   Int      @default(0) // BDT
+  imageUrl    String?
+  status      String   @default("ACTIVE") // ACTIVE | ARCHIVED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  variants Variant[]
+
+  @@index([categoryId])
+  @@index([status])
+}
+
+model Variant {
+  id                String   @id @default(cuid())
+  sku               String   @unique
+  barcode           String?  @unique
+  size              String // XS | S | M | L | XL | XXL | numeric
+  color             String
+  colorHex          String? // for the color swatch
+  lowStockThreshold Int      @default(8)
+  createdAt         DateTime @default(now())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  stockLevels    StockLevel[]
+  stockMovements StockMovement[]
+  poItems        POItem[]
+  soItems        SOItem[]
+
+  @@unique([productId, size, color])
+  @@index([productId])
+}
+
+// ----------------------------------------------------------------------------
+// Warehouses & stock
+// ----------------------------------------------------------------------------
+model Warehouse {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  address   String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  stockLevels    StockLevel[]
+  stockMovements StockMovement[]
+  purchaseOrders PurchaseOrder[]
+  salesOrders    SalesOrder[]
+}
+
+model StockLevel {
+  id          String @id @default(cuid())
+  quantity    Int    @default(0)
+  variantId   String
+  warehouseId String
+
+  variant   Variant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, warehouseId])
+  @@index([warehouseId])
+}
+
+model StockMovement {
+  id            String   @id @default(cuid())
+  type          String // PURCHASE_IN | SALE_OUT | ADJUSTMENT | TRANSFER_IN | TRANSFER_OUT
+  quantity      Int // signed: positive = in, negative = out
+  reason        String?
+  referenceType String? // PURCHASE_ORDER | SALES_ORDER | MANUAL | TRANSFER
+  referenceId   String?
+  createdAt     DateTime @default(now())
+
+  variantId   String
+  warehouseId String
+  userId      String?
+
+  variant   Variant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id])
+
+  @@index([variantId])
+  @@index([warehouseId])
+  @@index([createdAt])
+}
+
+// ----------------------------------------------------------------------------
+// Purchasing
+// ----------------------------------------------------------------------------
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  createdAt   DateTime @default(now())
+
+  purchaseOrders PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id           String    @id @default(cuid())
+  poNumber     String    @unique
+  status       String    @default("DRAFT") // DRAFT | ORDERED | PARTIAL | RECEIVED | CANCELLED
+  orderDate    DateTime  @default(now())
+  expectedDate DateTime?
+  notes        String?
+  totalAmount  Int       @default(0) // BDT
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  supplierId  String
+  warehouseId String
+  userId      String?
+
+  supplier  Supplier  @relation(fields: [supplierId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
+
+  items POItem[]
+
+  @@index([supplierId])
+  @@index([status])
+}
+
+model POItem {
+  id          String @id @default(cuid())
+  quantity    Int
+  unitCost    Int // BDT
+  receivedQty Int    @default(0)
+
+  purchaseOrderId String
+  variantId       String
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  variant       Variant       @relation(fields: [variantId], references: [id])
+
+  @@index([purchaseOrderId])
+}
+
+// ----------------------------------------------------------------------------
+// Sales
+// ----------------------------------------------------------------------------
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  createdAt DateTime @default(now())
+
+  salesOrders SalesOrder[]
+}
+
+model SalesOrder {
+  id          String   @id @default(cuid())
+  orderNumber String   @unique
+  status      String   @default("DRAFT") // DRAFT | CONFIRMED | FULFILLED | CANCELLED
+  orderDate   DateTime @default(now())
+  subtotal    Int      @default(0)
+  discount    Int      @default(0)
+  tax         Int      @default(0)
+  total       Int      @default(0)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customerId  String?
+  warehouseId String
+  userId      String?
+
+  customer  Customer?  @relation(fields: [customerId], references: [id])
+  warehouse Warehouse  @relation(fields: [warehouseId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
+
+  items SOItem[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([orderDate])
+}
+
+model SOItem {
+  id        String @id @default(cuid())
+  quantity  Int
+  unitPrice Int // BDT
+
+  salesOrderId String
+  variantId    String
+
+  salesOrder SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+  variant    Variant    @relation(fields: [variantId], references: [id])
+
+  @@index([salesOrderId])
+}
