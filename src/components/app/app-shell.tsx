@@ -112,6 +112,7 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
       <button
         type="button"
         onClick={onMenuClick}
+        onTouchStart={onMenuClick}
         className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-muted-foreground"
       >
         <Menu className="size-[18px]" />
@@ -157,6 +158,7 @@ function DrawerThemeToggle() {
     <button
       type="button"
       onClick={toggle}
+      onTouchStart={toggle}
       className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground w-full"
     >
       {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
@@ -242,6 +244,7 @@ export function AppShell({
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileOpen(false)}
+            onTouchStart={() => setMobileOpen(false)}
           />
           {/* Drawer */}
           <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-border bg-surface shadow-xl">
@@ -250,6 +253,7 @@ export function AppShell({
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
+                onTouchStart={() => setMobileOpen(false)}
                 aria-label="Close menu"
                 className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-muted"
               >
@@ -276,12 +280,14 @@ export function AppShell({
 
       {/* Main column */}
       <div className="lg:pl-64 print:pl-0">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md sm:px-6 print:hidden">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background px-4 sm:bg-background/80 sm:backdrop-blur-md sm:px-6 print:hidden">
+          {/* Hamburger hidden on mobile — use the bottom nav "More" button instead */}
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
+            onTouchStart={() => setMobileOpen(true)}
             aria-label="Open menu"
-            className="grid size-9 place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted lg:hidden"
+            className="grid size-9 place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted hidden sm:grid lg:hidden"
           >
             <Menu className="size-5" />
           </button>

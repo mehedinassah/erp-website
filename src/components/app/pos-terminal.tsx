@@ -63,6 +63,7 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
 
   const scanRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
   const lastScan = useRef<{ code: string; at: number }>({ code: "", at: 0 });
 
@@ -127,15 +128,8 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
     [warehouseId, flash],
   );
 
+  // On HTTPS/localhost: use live video stream
   async function startCamera() {
-    // Camera requires HTTPS (or localhost). HTTP over local IP is blocked by browsers.
-    if (typeof window !== "undefined" && !window.isSecureContext) {
-      flash(
-        "error",
-        "Camera needs HTTPS. On PC use localhost:3001. On phone run: npx ngrok http 3001",
-      );
-      return;
-    }
     try {
       const { BrowserMultiFormatReader } = await import("@zxing/browser");
       const reader = new BrowserMultiFormatReader();
@@ -143,14 +137,12 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
       const controls = await reader.decodeFromConstraints(
         { video: { facingMode: "environment" } },
         videoRef.current!,
-        (result) => {
-          if (result) addByCode(result.getText());
-        },
+        (result) => { if (result) addByCode(result.getText()); },
       );
       controlsRef.current = controls;
     } catch {
       setCameraOn(false);
-      flash("error", "Camera blocked — allow camera access in your browser settings.");
+      flash("error", "Camera blocked — allow camera access in browser settings.");
     }
   }
 
@@ -160,6 +152,26 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
     setCameraOn(false);
     focusScan();
   }
+
+  // On HTTP (e.g. local IP on phone): open native camera, scan from photo
+  async function scanFromPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    try {
+      const { BrowserMultiFormatReader } = await import("@zxing/browser");
+      const reader = new BrowserMultiFormatReader();
+      const result = await reader.decodeFromImageUrl(url);
+      if (result) await addByCode(result.getText());
+    } catch {
+      flash("error", "No barcode found in photo — try again with better lighting.");
+    } finally {
+      URL.revokeObjectURL(url);
+      if (photoRef.current) photoRef.current.value = "";
+    }
+  }
+
+  const isSecure = typeof window !== "undefined" ? window.isSecureContext : true;
 
   // Stop camera on unmount
   useEffect(() => () => controlsRef.current?.stop(), []);
@@ -298,21 +310,33 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
                   />
                 </div>
               </div>
-              <Button
-                type="button"
-                variant={cameraOn ? "secondary" : "outline"}
-                onClick={cameraOn ? stopCamera : startCamera}
-              >
-                {cameraOn ? (
-                  <>
-                    <CameraOff className="size-4" /> Stop camera
-                  </>
-                ) : (
-                  <>
-                    <Camera className="size-4" /> Use camera
-                  </>
-                )}
-              </Button>
+              {isSecure ? (
+                /* HTTPS / localhost: live video stream scanning */
+                <Button
+                  type="button"
+                  variant={cameraOn ? "secondary" : "outline"}
+                  onClick={cameraOn ? stopCamera : startCamera}
+                >
+                  {cameraOn ? (
+                    <><CameraOff className="size-4" /> Stop camera</>
+                  ) : (
+                    <><Camera className="size-4" /> Use camera</>
+                  )}
+                </Button>
+              ) : (
+                /* HTTP (phone via local IP): photo capture — works without HTTPS */
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted">
+                  <Camera className="size-4" /> Take photo
+                  <input
+                    ref={photoRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="sr-only"
+                    onChange={scanFromPhoto}
+                  />
+                </label>
+              )}
             </div>
 
             {cameraOn && (
