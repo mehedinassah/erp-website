@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Plus, Search, Shirt } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { canManageProducts } from "@/lib/permissions";
+import { canManageProducts, canDelete } from "@/lib/permissions";
+import { ClearButton } from "@/components/app/clear-button";
+import { clearProducts } from "../clear-actions";
 import { formatBDT, formatNumber } from "@/lib/format";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PageHeader } from "@/components/app/page-header";
@@ -76,6 +78,13 @@ export default async function ProductsPage({
               <Plus className="size-4" /> New product
             </Link>
           </Button>
+        )}
+        {canDelete(session.role) && (
+          <ClearButton
+            action={clearProducts}
+            entity="all products"
+            description="Permanently deletes every product, variant and stock record — and all sales & purchase orders, since they depend on products."
+          />
         )}
       </PageHeader>
 

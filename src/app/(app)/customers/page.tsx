@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Plus, Users, Pencil, Phone, Mail } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
+import { ClearButton } from "@/components/app/clear-button";
+import { clearCustomers } from "../clear-actions";
 import { formatBDT } from "@/lib/format";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
@@ -12,7 +15,7 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 export const dynamic = "force-dynamic";
 
 export default async function CustomersPage() {
-  await requireUser();
+  const session = await requireUser();
   const customers = await prisma.customer.findMany({
     orderBy: { name: "asc" },
     include: {
@@ -32,6 +35,13 @@ export default async function CustomersPage() {
             <Plus className="size-4" /> New customer
           </Link>
         </Button>
+        {canDelete(session.role) && (
+          <ClearButton
+            action={clearCustomers}
+            entity="all customers"
+            description="Deletes every customer. Their past sales orders are kept and marked as walk-in."
+          />
+        )}
       </PageHeader>
 
       <Card className="animate-rise overflow-hidden">

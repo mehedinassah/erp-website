@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Plus, Search, Wallet, Phone } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { canManageLedger } from "@/lib/permissions";
+import { canManageLedger, canDelete } from "@/lib/permissions";
+import { ClearButton } from "@/components/app/clear-button";
+import { clearLedger } from "@/app/(app)/clear-actions";
 import { formatTaka } from "@/lib/format";
 import { summarize } from "@/lib/ledger";
 import type { LedgerType } from "@/lib/enums";
@@ -72,6 +74,13 @@ export async function LedgerListView({
               <Plus className="size-4" /> New {isPaona ? "Paona" : "Dena"}
             </Link>
           </Button>
+        )}
+        {canDelete(role) && (
+          <ClearButton
+            action={clearLedger.bind(null, type)}
+            entity={`all ${isPaona ? "Paona" : "Dena"} accounts`}
+            description={`Deletes every ${isPaona ? "receivable (Paona)" : "payable (Dena)"} account and its full transaction history.`}
+          />
         )}
       </PageHeader>
 

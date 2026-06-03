@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Plus, Truck } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, canManage } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
+import { ClearButton } from "@/components/app/clear-button";
+import { clearPurchaseOrders } from "../clear-actions";
 import { formatBDT, formatDate } from "@/lib/format";
 import { PO_STATUS_LABEL, type PurchaseOrderStatus } from "@/lib/enums";
 import { PageHeader } from "@/components/app/page-header";
@@ -37,6 +40,13 @@ export default async function PurchasesPage() {
               <Plus className="size-4" /> New purchase order
             </Link>
           </Button>
+        )}
+        {canDelete(session.role) && (
+          <ClearButton
+            action={clearPurchaseOrders}
+            entity="all purchase orders"
+            description="Deletes every purchase order and its received-stock movement log. Suppliers and products are kept."
+          />
         )}
       </PageHeader>
 

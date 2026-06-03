@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Plus, Search, Boxes, ArrowDownRight, ArrowUpRight, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
+import { ClearButton } from "@/components/app/clear-button";
+import { clearStock } from "../clear-actions";
 import { formatNumber, formatDateTime } from "@/lib/format";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
@@ -35,7 +38,7 @@ export default async function StockPage({
 }: {
   searchParams: Promise<SP>;
 }) {
-  const [, sp] = await Promise.all([requireUser(), searchParams]);
+  const [session, sp] = await Promise.all([requireUser(), searchParams]);
   const q = (sp.q ?? "").trim().toLowerCase();
   const warehouseId = sp.warehouse ?? "";
   const lowOnly = sp.low === "1";
@@ -102,6 +105,13 @@ export default async function StockPage({
             <Plus className="size-4" /> Record movement
           </Link>
         </Button>
+        {canDelete(session.role) && (
+          <ClearButton
+            action={clearStock}
+            entity="all stock data"
+            description="Deletes every stock movement and resets all stock levels to 0. Products and orders are kept."
+          />
+        )}
       </PageHeader>
 
       {sp.recorded && (

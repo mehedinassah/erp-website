@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Plus, Factory, Pencil, Phone, Mail } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, canManage } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
+import { ClearButton } from "@/components/app/clear-button";
+import { clearSuppliers } from "../clear-actions";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card } from "@/components/ui/card";
@@ -32,6 +35,13 @@ export default async function SuppliersPage() {
               <Plus className="size-4" /> New supplier
             </Link>
           </Button>
+        )}
+        {canDelete(session.role) && (
+          <ClearButton
+            action={clearSuppliers}
+            entity="all suppliers"
+            description="Deletes every supplier and their purchase orders. Products are kept."
+          />
         )}
       </PageHeader>
 

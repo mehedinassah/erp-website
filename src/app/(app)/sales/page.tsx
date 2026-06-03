@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Plus, Receipt } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { canDelete } from "@/lib/permissions";
+import { ClearButton } from "@/components/app/clear-button";
+import { clearSalesOrders } from "../clear-actions";
 import { formatBDT, formatDate } from "@/lib/format";
 import { SO_STATUS_LABEL, type SalesOrderStatus } from "@/lib/enums";
 import { PageHeader } from "@/components/app/page-header";
@@ -14,7 +17,7 @@ import { Badge, statusTone } from "@/components/ui/badge";
 export const dynamic = "force-dynamic";
 
 export default async function SalesPage() {
-  await requireUser();
+  const session = await requireUser();
   const orders = await prisma.salesOrder.findMany({
     orderBy: { orderDate: "desc" },
     take: 50,
@@ -36,6 +39,13 @@ export default async function SalesPage() {
             <Plus className="size-4" /> New sale
           </Link>
         </Button>
+        {canDelete(session.role) && (
+          <ClearButton
+            action={clearSalesOrders}
+            entity="all sales orders"
+            description="Deletes every sales order and its stock-movement log. Products, customers and stock levels are kept."
+          />
+        )}
       </PageHeader>
 
       <Card className="animate-rise overflow-hidden">
