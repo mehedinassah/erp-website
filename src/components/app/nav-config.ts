@@ -7,6 +7,7 @@ import {
   Receipt,
   Users,
   Settings,
+  ScanLine,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,6 +46,7 @@ export const NAV: NavSection[] = [
   {
     section: "Sales",
     items: [
+      { href: "/pos", label: "Point of sale", icon: ScanLine },
       { href: "/sales", label: "Sales orders", icon: Receipt },
       { href: "/customers", label: "Customers", icon: Users },
     ],
