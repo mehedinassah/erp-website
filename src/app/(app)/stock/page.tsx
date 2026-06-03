@@ -39,14 +39,16 @@ export default async function StockPage({
   searchParams: Promise<SP>;
 }) {
   const [session, sp] = await Promise.all([requireUser(), searchParams]);
+  const { tenantId } = session;
   const q = (sp.q ?? "").trim().toLowerCase();
   const warehouseId = sp.warehouse ?? "";
   const lowOnly = sp.low === "1";
   const page = Math.max(1, Number(sp.page ?? 1) || 1);
 
   const [warehouses, variants, movements] = await Promise.all([
-    prisma.warehouse.findMany({ orderBy: { name: "asc" } }),
+    prisma.warehouse.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.variant.findMany({
+      where: { product: { tenantId } },
       include: {
         product: true,
         stockLevels: { include: { warehouse: true } },
@@ -54,6 +56,7 @@ export default async function StockPage({
       orderBy: { product: { name: "asc" } },
     }),
     prisma.stockMovement.findMany({
+      where: { warehouse: { tenantId } },
       orderBy: { createdAt: "desc" },
       take: 8,
       include: { variant: { include: { product: true } }, warehouse: true },

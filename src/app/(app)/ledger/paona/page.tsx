@@ -9,5 +9,5 @@ export default async function PaonaPage({
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
   const [session, sp] = await Promise.all([requireUser(), searchParams]);
-  return <LedgerListView type="PAONA" sp={sp} role={session.role} />;
+  return <LedgerListView type="PAONA" sp={sp} role={session.role} tenantId={session.tenantId} />;
 }

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireUser } from "@/lib/auth";
 import { customerSchema, fieldErrorsFrom, type ActionState } from "@/lib/validation";
 
 function parse(formData: FormData) {
@@ -19,11 +19,12 @@ export async function createCustomer(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
   const parsed = parse(formData);
   if (!parsed.success)
     return { error: "Please fix the highlighted fields.", fieldErrors: fieldErrorsFrom(parsed.error) };
-  await prisma.customer.create({ data: parsed.data });
+  await prisma.customer.create({ data: { ...parsed.data, tenantId } });
   revalidatePath("/customers");
   redirect("/customers");
 }
@@ -33,20 +34,25 @@ export async function updateCustomer(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
   const parsed = parse(formData);
   if (!parsed.success)
     return { error: "Please fix the highlighted fields.", fieldErrors: fieldErrorsFrom(parsed.error) };
-  await prisma.customer.update({ where: { id }, data: parsed.data });
+  await prisma.customer.update({ where: { id, tenantId }, data: parsed.data });
   revalidatePath("/customers");
   redirect("/customers");
 }
 
 /** Admin only. Detaches the customer from their orders (kept as walk-in). */
 export async function deleteCustomer(id: string) {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
+  // Verify ownership before deleting
+  const owned = await prisma.customer.findFirst({ where: { id, tenantId }, select: { id: true } });
+  if (!owned) return;
   await prisma.salesOrder.updateMany({
-    where: { customerId: id },
+    where: { customerId: id, tenantId },
     data: { customerId: null },
   });
   await prisma.customer.delete({ where: { id } });

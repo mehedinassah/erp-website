@@ -16,7 +16,9 @@ export const dynamic = "force-dynamic";
 
 export default async function CustomersPage() {
   const session = await requireUser();
+  const { tenantId } = session;
   const customers = await prisma.customer.findMany({
+    where: { tenantId },
     orderBy: { name: "asc" },
     include: {
       salesOrders: { select: { total: true } },

@@ -10,17 +10,18 @@ import type { LedgerType } from "@/lib/enums";
 // data (FK-safe), as an alternative to the global Settings → Danger Zone.
 
 export async function clearProducts() {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   await prisma.$transaction(async (tx) => {
     // Orders depend on products, so clearing the catalogue clears them too.
-    await tx.sOItem.deleteMany();
-    await tx.salesOrder.deleteMany();
-    await tx.pOItem.deleteMany();
-    await tx.purchaseOrder.deleteMany();
-    await tx.stockMovement.deleteMany();
-    await tx.stockLevel.deleteMany();
-    await tx.variant.deleteMany();
-    await tx.product.deleteMany();
+    await tx.sOItem.deleteMany({ where: { salesOrder: { tenantId } } });
+    await tx.salesOrder.deleteMany({ where: { tenantId } });
+    await tx.pOItem.deleteMany({ where: { purchaseOrder: { tenantId } } });
+    await tx.purchaseOrder.deleteMany({ where: { tenantId } });
+    await tx.stockMovement.deleteMany({ where: { warehouse: { tenantId } } });
+    await tx.stockLevel.deleteMany({ where: { variant: { product: { tenantId } } } });
+    await tx.variant.deleteMany({ where: { product: { tenantId } } });
+    await tx.product.deleteMany({ where: { tenantId } });
   });
   revalidatePath("/products");
   revalidatePath("/");
@@ -28,10 +29,11 @@ export async function clearProducts() {
 }
 
 export async function clearStock() {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   await prisma.$transaction(async (tx) => {
-    await tx.stockMovement.deleteMany();
-    await tx.stockLevel.updateMany({ data: { quantity: 0 } });
+    await tx.stockMovement.deleteMany({ where: { warehouse: { tenantId } } });
+    await tx.stockLevel.updateMany({ where: { variant: { product: { tenantId } } }, data: { quantity: 0 } });
   });
   revalidatePath("/stock");
   revalidatePath("/");
@@ -39,12 +41,13 @@ export async function clearStock() {
 }
 
 export async function clearPurchaseOrders() {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   await prisma.$transaction(async (tx) => {
-    await tx.pOItem.deleteMany();
-    await tx.purchaseOrder.deleteMany();
+    await tx.pOItem.deleteMany({ where: { purchaseOrder: { tenantId } } });
+    await tx.purchaseOrder.deleteMany({ where: { tenantId } });
     await tx.stockMovement.deleteMany({
-      where: { referenceType: "PURCHASE_ORDER" },
+      where: { referenceType: "PURCHASE_ORDER", warehouse: { tenantId } },
     });
   });
   revalidatePath("/purchases");
@@ -52,10 +55,11 @@ export async function clearPurchaseOrders() {
 }
 
 export async function clearSuppliers() {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   await prisma.$transaction(async (tx) => {
-    await tx.purchaseOrder.deleteMany(); // cascades PO items
-    await tx.supplier.deleteMany();
+    await tx.purchaseOrder.deleteMany({ where: { tenantId } }); // cascades PO items
+    await tx.supplier.deleteMany({ where: { tenantId } });
   });
   revalidatePath("/suppliers");
   revalidatePath("/purchases");
@@ -63,12 +67,13 @@ export async function clearSuppliers() {
 }
 
 export async function clearSalesOrders() {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   await prisma.$transaction(async (tx) => {
-    await tx.sOItem.deleteMany();
-    await tx.salesOrder.deleteMany();
+    await tx.sOItem.deleteMany({ where: { salesOrder: { tenantId } } });
+    await tx.salesOrder.deleteMany({ where: { tenantId } });
     await tx.stockMovement.deleteMany({
-      where: { referenceType: "SALES_ORDER" },
+      where: { referenceType: "SALES_ORDER", warehouse: { tenantId } },
     });
   });
   revalidatePath("/sales");
@@ -77,18 +82,20 @@ export async function clearSalesOrders() {
 }
 
 export async function clearCustomers() {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   await prisma.$transaction(async (tx) => {
-    await tx.salesOrder.updateMany({ data: { customerId: null } });
-    await tx.customer.deleteMany();
+    await tx.salesOrder.updateMany({ where: { tenantId }, data: { customerId: null } });
+    await tx.customer.deleteMany({ where: { tenantId } });
   });
   revalidatePath("/customers");
   redirect("/customers?cleared=1");
 }
 
 export async function clearLedger(type: LedgerType) {
-  await requireRole(["ADMIN"]);
-  await prisma.ledgerAccount.deleteMany({ where: { type } }); // cascades entries
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
+  await prisma.ledgerAccount.deleteMany({ where: { type, tenantId } }); // cascades entries
   revalidatePath("/ledger");
   revalidatePath(type === "PAONA" ? "/ledger/paona" : "/ledger/dena");
   redirect(type === "PAONA" ? "/ledger/paona?cleared=1" : "/ledger/dena?cleared=1");

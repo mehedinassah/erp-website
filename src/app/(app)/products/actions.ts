@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireUser } from "@/lib/auth";
 import { slugify, code } from "@/lib/utils";
 import {
   productSchema,
@@ -31,7 +31,8 @@ export async function createProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
 
   const parsed = parseBase(formData);
   if (!parsed.success) {
@@ -53,7 +54,7 @@ export async function createProduct(
     return { error: "Add at least one variant (pick sizes and colours)." };
   }
 
-  const warehouses = await prisma.warehouse.findMany({ select: { id: true } });
+  const warehouses = await prisma.warehouse.findMany({ where: { tenantId }, select: { id: true } });
 
   let productId = "";
   try {
@@ -71,6 +72,7 @@ export async function createProduct(
           costPrice: data.costPrice,
           sellPrice: data.sellPrice,
           status: data.status,
+          tenantId,
         },
       });
 
@@ -112,7 +114,8 @@ export async function updateProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
 
   const parsed = parseBase(formData);
   if (!parsed.success) {
@@ -122,7 +125,7 @@ export async function updateProduct(
 
   try {
     await prisma.product.update({
-      where: { id },
+      where: { id, tenantId },
       data: {
         name: data.name,
         sku: data.sku.toUpperCase(),
@@ -146,8 +149,9 @@ export async function updateProduct(
 }
 
 export async function archiveProduct(id: string) {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
-  const product = await prisma.product.findUnique({ where: { id } });
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
+  const product = await prisma.product.findFirst({ where: { id, tenantId } });
   await prisma.product.update({
     where: { id },
     data: { status: product?.status === "ARCHIVED" ? "ACTIVE" : "ARCHIVED" },
@@ -159,7 +163,11 @@ export async function archiveProduct(id: string) {
 /** Admin only. Permanently deletes a product, its variants, stock, and any
  *  order lines that referenced it (so seeded/placeholder data can be cleared). */
 export async function deleteProduct(id: string) {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
+  // Verify ownership
+  const owned = await prisma.product.findFirst({ where: { id, tenantId }, select: { id: true } });
+  if (!owned) return;
 
   const variants = await prisma.variant.findMany({
     where: { productId: id },

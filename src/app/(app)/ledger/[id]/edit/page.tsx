@@ -15,9 +15,10 @@ export default async function EditAccountPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["ADMIN", "MANAGER"]);
+  const session = await requireRole(["ADMIN", "MANAGER"]);
+  const { tenantId } = session;
   const { id } = await params;
-  const account = await prisma.ledgerAccount.findUnique({ where: { id } });
+  const account = await prisma.ledgerAccount.findFirst({ where: { id, tenantId } });
   if (!account) notFound();
 
   return (

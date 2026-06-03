@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireRole, getSession } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { MOVEMENT_TYPES, type MovementType } from "@/lib/enums";
 import type { ActionState } from "@/lib/validation";
 
@@ -11,8 +11,7 @@ export async function recordMovement(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
-  const session = await getSession();
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
 
   const variantId = String(formData.get("variantId") ?? "");
   const warehouseId = String(formData.get("warehouseId") ?? "");
@@ -66,7 +65,7 @@ export async function recordMovement(
           quantity: delta,
           reason,
           referenceType: "MANUAL",
-          userId: session?.userId ?? null,
+          userId: session.userId,
         },
       });
     });

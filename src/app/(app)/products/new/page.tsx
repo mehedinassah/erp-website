@@ -9,8 +9,10 @@ import { createProduct } from "../actions";
 export const dynamic = "force-dynamic";
 
 export default async function NewProductPage() {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
   const categories = await prisma.category.findMany({
+    where: { tenantId },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });

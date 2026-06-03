@@ -124,10 +124,17 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
 /* ── Brand ─────────────────────────────────────────────────────────── */
 function Brand() {
   return (
-    <Link href="/" className="flex items-center px-5 py-4">
-      <span className="rounded-lg bg-white px-2 py-1">
-        <Image src="/perico.png" alt="PERICO" width={110} height={36} className="h-8 w-auto" priority />
-      </span>
+    <Link href="/" className="block px-4 py-3">
+      <div className="relative h-12 w-full overflow-hidden rounded-lg bg-white">
+        <Image
+          src="/perico.png"
+          alt="PERICO"
+          fill
+          className="object-cover"
+          style={{ objectPosition: "center 50%" }}
+          priority
+        />
+      </div>
     </Link>
   );
 }

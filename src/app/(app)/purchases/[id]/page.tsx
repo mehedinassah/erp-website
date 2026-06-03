@@ -26,9 +26,10 @@ export default async function PurchaseOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const [session, { id }] = await Promise.all([requireUser(), params]);
+  const { tenantId } = session;
 
-  const po = await prisma.purchaseOrder.findUnique({
-    where: { id },
+  const po = await prisma.purchaseOrder.findFirst({
+    where: { id, tenantId },
     include: {
       supplier: true,
       warehouse: true,

@@ -17,8 +17,9 @@ export default async function EditCustomerPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await requireUser();
+  const { tenantId } = session;
   const { id } = await params;
-  const customer = await prisma.customer.findUnique({ where: { id } });
+  const customer = await prisma.customer.findFirst({ where: { id, tenantId } });
   if (!customer) notFound();
 
   return (

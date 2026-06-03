@@ -14,12 +14,14 @@ export default async function EditProductPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
   const { id } = await params;
 
   const [product, categories] = await Promise.all([
-    prisma.product.findUnique({ where: { id } }),
+    prisma.product.findFirst({ where: { id, tenantId } }),
     prisma.category.findMany({
+      where: { tenantId },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),

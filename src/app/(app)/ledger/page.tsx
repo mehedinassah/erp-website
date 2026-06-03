@@ -25,8 +25,9 @@ import { LedgerTrend } from "@/components/charts/ledger-trend";
 export const dynamic = "force-dynamic";
 const DAY = 86400000;
 
-async function getData() {
+async function getData(tenantId: string) {
   const accounts = await prisma.ledgerAccount.findMany({
+    where: { tenantId },
     include: { entries: { select: { kind: true, amount: true, occurredAt: true } } },
   });
 
@@ -74,6 +75,7 @@ async function getData() {
   }));
 
   const recent = await prisma.ledgerEntry.findMany({
+    where: { ledger: { tenantId } },
     orderBy: { occurredAt: "desc" },
     take: 8,
     include: { ledger: true },
@@ -94,7 +96,9 @@ async function getData() {
 }
 
 export default async function LedgerOverview() {
-  const [session, d] = await Promise.all([requireUser(), getData()]);
+  const session = await requireUser();
+  const { tenantId } = session;
+  const d = await getData(tenantId);
   const manage = canManageLedger(session.role);
 
   return (

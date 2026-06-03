@@ -27,8 +27,10 @@ export default async function ProductDetailPage({
 }) {
   const [session, { id }] = await Promise.all([requireUser(), params]);
 
-  const product = await prisma.product.findUnique({
-    where: { id },
+  const { tenantId } = session;
+
+  const product = await prisma.product.findFirst({
+    where: { id, tenantId },
     include: {
       category: true,
       variants: {
@@ -40,6 +42,7 @@ export default async function ProductDetailPage({
   if (!product) notFound();
 
   const warehouses = await prisma.warehouse.findMany({
+    where: { tenantId },
     orderBy: { name: "asc" },
   });
 

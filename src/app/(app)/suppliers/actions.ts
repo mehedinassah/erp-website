@@ -20,11 +20,12 @@ export async function createSupplier(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER"]);
+  const session = await requireRole(["ADMIN", "MANAGER"]);
+  const { tenantId } = session;
   const parsed = parse(formData);
   if (!parsed.success)
     return { error: "Please fix the highlighted fields.", fieldErrors: fieldErrorsFrom(parsed.error) };
-  await prisma.supplier.create({ data: parsed.data });
+  await prisma.supplier.create({ data: { ...parsed.data, tenantId } });
   revalidatePath("/suppliers");
   redirect("/suppliers");
 }
@@ -34,21 +35,25 @@ export async function updateSupplier(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER"]);
+  const session = await requireRole(["ADMIN", "MANAGER"]);
+  const { tenantId } = session;
   const parsed = parse(formData);
   if (!parsed.success)
     return { error: "Please fix the highlighted fields.", fieldErrors: fieldErrorsFrom(parsed.error) };
-  await prisma.supplier.update({ where: { id }, data: parsed.data });
+  await prisma.supplier.update({ where: { id, tenantId }, data: parsed.data });
   revalidatePath("/suppliers");
   redirect("/suppliers");
 }
 
 /** Admin only. Permanently deletes a supplier and its purchase orders. */
 export async function deleteSupplier(id: string) {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
+  const owned = await prisma.supplier.findFirst({ where: { id, tenantId }, select: { id: true } });
+  if (!owned) return;
   await prisma.$transaction(async (tx) => {
     // Cascades purchase-order items
-    await tx.purchaseOrder.deleteMany({ where: { supplierId: id } });
+    await tx.purchaseOrder.deleteMany({ where: { supplierId: id, tenantId } });
     await tx.supplier.delete({ where: { id } });
   });
   revalidatePath("/suppliers");

@@ -19,9 +19,9 @@ export default function SignupPage() {
           }}
         />
         <div className="relative">
-          <span className="inline-block rounded-xl bg-white px-3 py-2">
-            <Image src="/perico.png" alt="PERICO" width={120} height={40} className="h-9 w-auto" priority />
-          </span>
+          <div className="relative h-14 w-52 overflow-hidden rounded-xl bg-white">
+            <Image src="/perico.png" alt="PERICO" fill className="object-cover" style={{ objectPosition: "center 50%" }} priority />
+          </div>
         </div>
 
         <div className="relative max-w-sm">
@@ -47,9 +47,9 @@ export default function SignupPage() {
         <div className="w-full max-w-sm animate-rise">
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">
-            <span className="inline-block rounded-xl bg-white px-3 py-2 shadow-sm border border-border">
-              <Image src="/perico.png" alt="PERICO" width={110} height={36} className="h-8 w-auto" priority />
-            </span>
+            <div className="relative h-12 w-44 overflow-hidden rounded-xl border border-border bg-white shadow-sm">
+              <Image src="/perico.png" alt="PERICO" fill className="object-cover" style={{ objectPosition: "center 50%" }} priority />
+            </div>
           </div>
 
           <h2 className="font-display text-2xl font-semibold tracking-tight">

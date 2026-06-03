@@ -9,12 +9,14 @@ import { createSalesOrder } from "../actions";
 export const dynamic = "force-dynamic";
 
 export default async function NewSalePage() {
-  await requireUser();
+  const session = await requireUser();
+  const { tenantId } = session;
 
   const [customers, warehouses, variants] = await Promise.all([
-    prisma.customer.findMany({ orderBy: { name: "asc" } }),
-    prisma.warehouse.findMany({ orderBy: { name: "asc" } }),
+    prisma.customer.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
+    prisma.warehouse.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.variant.findMany({
+      where: { product: { tenantId } },
       include: { product: true },
       orderBy: { product: { name: "asc" } },
     }),

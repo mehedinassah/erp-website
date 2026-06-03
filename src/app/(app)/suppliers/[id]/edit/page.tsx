@@ -17,8 +17,9 @@ export default async function EditSupplierPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await requireRole(["ADMIN", "MANAGER"]);
+  const { tenantId } = session;
   const { id } = await params;
-  const supplier = await prisma.supplier.findUnique({ where: { id } });
+  const supplier = await prisma.supplier.findFirst({ where: { id, tenantId } });
   if (!supplier) notFound();
 
   return (

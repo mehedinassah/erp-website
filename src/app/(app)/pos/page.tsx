@@ -6,8 +6,10 @@ import { PosTerminal } from "@/components/app/pos-terminal";
 export const dynamic = "force-dynamic";
 
 export default async function PosPage() {
-  await requireUser();
+  const session = await requireUser();
+  const { tenantId } = session;
   const warehouses = await prisma.warehouse.findMany({
+    where: { tenantId },
     orderBy: { isDefault: "desc" },
     select: { id: true, name: true },
   });

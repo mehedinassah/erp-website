@@ -12,15 +12,17 @@ export default async function AdjustStockPage({
 }: {
   searchParams: Promise<{ variant?: string; warehouse?: string }>;
 }) {
-  await requireUser();
+  const session = await requireUser();
+  const { tenantId } = session;
   const sp = await searchParams;
 
   const [variants, warehouses] = await Promise.all([
     prisma.variant.findMany({
+      where: { product: { tenantId } },
       include: { product: true },
       orderBy: { product: { name: "asc" } },
     }),
-    prisma.warehouse.findMany({ orderBy: { name: "asc" } }),
+    prisma.warehouse.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
   ]);
 
   const variantOptions = variants.map((v) => ({

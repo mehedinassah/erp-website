@@ -23,6 +23,12 @@ export async function loginAction(
     return { error: "Invalid email or password." };
   }
 
-  await createSession(user);
+  await createSession({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    tenantId: user.tenantId,
+  });
   redirect("/");
 }

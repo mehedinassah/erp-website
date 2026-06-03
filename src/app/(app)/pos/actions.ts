@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireRole, getSession } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export type ScanHit = {
   found: true;
@@ -22,12 +22,13 @@ export async function lookupBarcode(
   code: string,
   warehouseId: string,
 ): Promise<ScanResult> {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
   const c = code.trim();
   if (!c) return { found: false, error: "Empty code", code: c };
 
   const variant = await prisma.variant.findFirst({
-    where: { OR: [{ barcode: c }, { sku: c }] },
+    where: { OR: [{ barcode: c }, { sku: c }], product: { tenantId } },
     include: {
       product: true,
       stockLevels: { where: { warehouseId } },
@@ -56,8 +57,8 @@ export async function posCheckout(input: {
   warehouseId: string;
   discount?: number;
 }): Promise<{ ok: boolean; orderId?: string; orderNumber?: string; error?: string }> {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
-  const session = await getSession();
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
 
   const items = (input.items ?? []).filter(
     (i) => i.variantId && i.quantity > 0,
@@ -78,7 +79,7 @@ export async function posCheckout(input: {
   const total = Math.max(0, subtotal - discount);
 
   const year = new Date().getFullYear();
-  const count = await prisma.salesOrder.count();
+  const count = await prisma.salesOrder.count({ where: { tenantId } });
   const orderNumber = `SO-${year}-${String(count + 1).padStart(4, "0")}`;
 
   try {
@@ -111,7 +112,8 @@ export async function posCheckout(input: {
           discount,
           tax: 0,
           total,
-          userId: session?.userId ?? null,
+          tenantId,
+          userId: session.userId,
           items: {
             create: lines.map((i) => ({
               variantId: i.variantId,
@@ -141,7 +143,7 @@ export async function posCheckout(input: {
             reason: `POS sale ${orderNumber}`,
             referenceType: "SALES_ORDER",
             referenceId: so.id,
-            userId: session?.userId ?? null,
+            userId: session.userId,
           },
         });
       }

@@ -18,6 +18,29 @@ datasource db {
 }
 
 // ----------------------------------------------------------------------------
+// Multi-tenancy
+// ----------------------------------------------------------------------------
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  plan      String   @default("TRIAL")   // TRIAL | STARTER | BUSINESS | PRO
+  status    String   @default("ACTIVE")  // ACTIVE | SUSPENDED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users          User[]
+  categories     Category[]
+  products       Product[]
+  warehouses     Warehouse[]
+  suppliers      Supplier[]
+  customers      Customer[]
+  purchaseOrders PurchaseOrder[]
+  salesOrders    SalesOrder[]
+  ledgerAccounts LedgerAccount[]
+}
+
+// ----------------------------------------------------------------------------
 // Auth
 // ----------------------------------------------------------------------------
 model User {
@@ -30,10 +53,15 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   stockMovements StockMovement[]
   purchaseOrders PurchaseOrder[]
   salesOrders    SalesOrder[]
   ledgerEntries  LedgerEntry[]
+
+  @@index([tenantId])
 }
 
 // ----------------------------------------------------------------------------
@@ -41,17 +69,25 @@ model User {
 // ----------------------------------------------------------------------------
 model Category {
   id        String    @id @default(cuid())
-  name      String    @unique
-  slug      String    @unique
+  name      String
+  slug      String
   createdAt DateTime  @default(now())
-  products  Product[]
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  products Product[]
+
+  @@unique([tenantId, name])
+  @@unique([tenantId, slug])
+  @@index([tenantId])
 }
 
 model Product {
   id          String   @id @default(cuid())
   name        String
-  slug        String   @unique
-  sku         String   @unique
+  slug        String
+  sku         String
   description String?
   gender      String   @default("UNISEX") // MEN | WOMEN | UNISEX | KIDS
   season      String?
@@ -63,11 +99,17 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
   variants Variant[]
 
+  @@unique([tenantId, slug])
+  @@unique([tenantId, sku])
+  @@index([tenantId])
   @@index([categoryId])
   @@index([status])
 }
@@ -100,15 +142,21 @@ model Variant {
 model Warehouse {
   id        String   @id @default(cuid())
   name      String
-  code      String   @unique
+  code      String
   address   String?
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
 
   stockLevels    StockLevel[]
   stockMovements StockMovement[]
   purchaseOrders PurchaseOrder[]
   salesOrders    SalesOrder[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
 }
 
 model StockLevel {
@@ -158,12 +206,17 @@ model Supplier {
   address     String?
   createdAt   DateTime @default(now())
 
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   purchaseOrders PurchaseOrder[]
+
+  @@index([tenantId])
 }
 
 model PurchaseOrder {
   id           String    @id @default(cuid())
-  poNumber     String    @unique
+  poNumber     String
   status       String    @default("DRAFT") // DRAFT | ORDERED | PARTIAL | RECEIVED | CANCELLED
   orderDate    DateTime  @default(now())
   expectedDate DateTime?
@@ -171,6 +224,9 @@ model PurchaseOrder {
   totalAmount  Int       @default(0) // BDT
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
 
   supplierId  String
   warehouseId String
@@ -182,6 +238,8 @@ model PurchaseOrder {
 
   items POItem[]
 
+  @@unique([tenantId, poNumber])
+  @@index([tenantId])
   @@index([supplierId])
   @@index([status])
 }
@@ -212,12 +270,17 @@ model Customer {
   address   String?
   createdAt DateTime @default(now())
 
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   salesOrders SalesOrder[]
+
+  @@index([tenantId])
 }
 
 model SalesOrder {
   id          String   @id @default(cuid())
-  orderNumber String   @unique
+  orderNumber String
   status      String   @default("DRAFT") // DRAFT | CONFIRMED | FULFILLED | CANCELLED
   orderDate   DateTime @default(now())
   subtotal    Int      @default(0)
@@ -227,6 +290,9 @@ model SalesOrder {
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
 
   customerId  String?
   warehouseId String
@@ -238,6 +304,8 @@ model SalesOrder {
 
   items SOItem[]
 
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
   @@index([customerId])
   @@index([status])
   @@index([orderDate])
@@ -262,7 +330,7 @@ model SOItem {
 // ----------------------------------------------------------------------------
 model LedgerAccount {
   id            String    @id @default(cuid())
-  code          String    @unique // P-1023 (Paona) / D-1023 (Dena)
+  code          String    // P-1023 (Paona) / D-1023 (Dena)
   type          String // PAONA (they owe me) | DENA (I owe them)
   shopName      String
   ownerName     String?
@@ -275,8 +343,13 @@ model LedgerAccount {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   entries LedgerEntry[]
 
+  @@unique([tenantId, code])
+  @@index([tenantId])
   @@index([type])
 }
 

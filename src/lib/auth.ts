@@ -38,12 +38,14 @@ export async function createSession(user: {
   email: string;
   name: string;
   role: string;
+  tenantId: string;
 }) {
   const token = await signSession({
     userId: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
+    tenantId: user.tenantId,
   });
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
@@ -63,6 +65,15 @@ export async function destroySession() {
 export async function verifyCredentials(email: string, password: string) {
   const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase().trim() },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      active: true,
+      passwordHash: true,
+      tenantId: true,
+    },
   });
   if (!user || !user.active) return null;
   const ok = await bcrypt.compare(password, user.passwordHash);

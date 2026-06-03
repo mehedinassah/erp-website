@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireRole, getSession } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import type { ActionState } from "@/lib/validation";
 
 type LineItem = { variantId: string; quantity: number; price: number };
@@ -23,9 +23,9 @@ function parseItems(formData: FormData): LineItem[] {
   }
 }
 
-async function nextOrderNumber() {
+async function nextOrderNumber(tenantId: string) {
   const year = new Date().getFullYear();
-  const count = await prisma.salesOrder.count();
+  const count = await prisma.salesOrder.count({ where: { tenantId } });
   return `SO-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
@@ -33,8 +33,8 @@ export async function createSalesOrder(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
-  const session = await getSession();
+  const session = await requireRole(["ADMIN", "MANAGER", "STAFF"]);
+  const { tenantId } = session;
 
   const customerId = String(formData.get("partyId") ?? "") || null;
   const warehouseId = String(formData.get("warehouseId") ?? "");
@@ -56,7 +56,7 @@ export async function createSalesOrder(
 
   const subtotal = lines.reduce((s, i) => s + i.quantity * i.price, 0);
   const total = Math.max(0, subtotal - discount);
-  const orderNumber = await nextOrderNumber();
+  const orderNumber = await nextOrderNumber(tenantId);
 
   let id = "";
   try {
@@ -91,7 +91,8 @@ export async function createSalesOrder(
           discount,
           tax: 0,
           total,
-          userId: session?.userId ?? null,
+          tenantId,
+          userId: session.userId,
           items: {
             create: lines.map((i) => ({
               variantId: i.variantId,
@@ -118,7 +119,7 @@ export async function createSalesOrder(
             reason: `Sold on ${orderNumber}`,
             referenceType: "SALES_ORDER",
             referenceId: so.id,
-            userId: session?.userId ?? null,
+            userId: session.userId,
           },
         });
       }

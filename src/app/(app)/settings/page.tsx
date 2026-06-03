@@ -21,17 +21,18 @@ export default async function SettingsPage({
   searchParams: Promise<{ reset?: string }>;
 }) {
   const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   const sp = await searchParams;
 
   const [products, variants, sales, purchases, suppliers, customers, units] =
     await Promise.all([
-      prisma.product.count(),
-      prisma.variant.count(),
-      prisma.salesOrder.count(),
-      prisma.purchaseOrder.count(),
-      prisma.supplier.count(),
-      prisma.customer.count(),
-      prisma.stockLevel.aggregate({ _sum: { quantity: true } }),
+      prisma.product.count({ where: { tenantId } }),
+      prisma.variant.count({ where: { product: { tenantId } } }),
+      prisma.salesOrder.count({ where: { tenantId } }),
+      prisma.purchaseOrder.count({ where: { tenantId } }),
+      prisma.supplier.count({ where: { tenantId } }),
+      prisma.customer.count({ where: { tenantId } }),
+      prisma.stockLevel.aggregate({ where: { variant: { product: { tenantId } } }, _sum: { quantity: true } }),
     ]);
 
   const stats = [

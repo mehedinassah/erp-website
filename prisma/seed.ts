@@ -102,10 +102,24 @@ async function main() {
   await prisma.variant.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.ledgerEntry.deleteMany();
+  await prisma.ledgerAccount.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.supplier.deleteMany();
   await prisma.warehouse.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.tenant.deleteMany();
+
+  // Create tenant
+  const tenant = await prisma.tenant.create({
+    data: {
+      name: "RONG",
+      slug: "rong",
+      plan: "PRO",
+      status: "ACTIVE",
+    },
+  });
+  console.log("✓ Tenant — RONG");
 
   // Single administrator. Managers/Staff are created by the admin in-app
   // (Settings → Users & access).
@@ -115,6 +129,7 @@ async function main() {
       email: "mehedinas69@gmail.com",
       name: "Administrator",
       role: "ADMIN",
+      tenantId: tenant.id,
       passwordHash,
     },
   });
@@ -122,17 +137,17 @@ async function main() {
 
   // Warehouses
   const flagship = await prisma.warehouse.create({
-    data: { name: "Gulshan Flagship Store", code: "DHK-GUL", address: "Gulshan Avenue, Dhaka 1212", isDefault: true },
+    data: { name: "Gulshan Flagship Store", code: "DHK-GUL", address: "Gulshan Avenue, Dhaka 1212", isDefault: true, tenantId: tenant.id },
   });
   const warehouse = await prisma.warehouse.create({
-    data: { name: "Tejgaon Central Warehouse", code: "DHK-TEJ", address: "Tejgaon I/A, Dhaka 1208" },
+    data: { name: "Tejgaon Central Warehouse", code: "DHK-TEJ", address: "Tejgaon I/A, Dhaka 1208", tenantId: tenant.id },
   });
   console.log("✓ Warehouses");
 
   // Categories
   const categoryMap = new Map<string, string>();
   for (const name of CATEGORIES) {
-    const c = await prisma.category.create({ data: { name, slug: slugify(name) } });
+    const c = await prisma.category.create({ data: { name, slug: slugify(name), tenantId: tenant.id } });
     categoryMap.set(name, c.id);
   }
   console.log("✓ Categories");
@@ -156,6 +171,7 @@ async function main() {
         sellPrice: ps.sell,
         status: "ACTIVE",
         categoryId: categoryMap.get(ps.category)!,
+        tenantId: tenant.id,
       },
     });
 
@@ -195,7 +211,7 @@ async function main() {
 
   // Suppliers
   const suppliers = [];
-  for (const s of SUPPLIERS) suppliers.push(await prisma.supplier.create({ data: s }));
+  for (const s of SUPPLIERS) suppliers.push(await prisma.supplier.create({ data: { ...s, tenantId: tenant.id } }));
   console.log("✓ Suppliers");
 
   // Purchase orders
@@ -229,6 +245,7 @@ async function main() {
         supplierId: supplier.id,
         warehouseId: warehouse.id,
         userId: admin.id,
+        tenantId: tenant.id,
         items: { create: items },
       },
     });
@@ -237,7 +254,7 @@ async function main() {
 
   // Customers
   const customers = [];
-  for (const c of CUSTOMERS) customers.push(await prisma.customer.create({ data: c }));
+  for (const c of CUSTOMERS) customers.push(await prisma.customer.create({ data: { ...c, tenantId: tenant.id } }));
   console.log("✓ Customers");
 
   // Sales orders spread across the last ~45 days (for dashboard trends)
@@ -271,6 +288,7 @@ async function main() {
           customerId: customer.id,
           warehouseId: flagship.id,
           userId: admin.id,
+          tenantId: tenant.id,
           items: { create: items },
         },
       });
@@ -279,8 +297,6 @@ async function main() {
   console.log(`✓ ${orderNo} sales orders across 45 days`);
 
   // Dena–Paona ledger
-  await prisma.ledgerEntry.deleteMany();
-  await prisma.ledgerAccount.deleteMany();
   const LEDGER = [
     { type: "PAONA", shop: "M/S Rahman Traders", owner: "Abdur Rahman", addr: "Islampur, Dhaka", phone: "+8801711100200", cat: "Wholesale", opening: 1000000, pays: [[50000, "CASH", 12], [150000, "BANK", 4]] },
     { type: "PAONA", shop: "Karim Cloth House", owner: "Md. Karim", addr: "Tan Bazar, Narayanganj", phone: "+8801712200300", cat: "Retailer", opening: 350000, pays: [[100000, "MOBILE", 6]] },
@@ -302,6 +318,7 @@ async function main() {
         phone: a.phone,
         category: a.cat,
         openingAmount: a.opening,
+        tenantId: tenant.id,
         // Account opened ~90 days ago, before any payment
         createdAt: new Date(Date.now() - 90 * 86400000),
         entries: {

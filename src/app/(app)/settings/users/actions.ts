@@ -16,7 +16,8 @@ export async function createUser(
   _prev: ActionState,
   fd: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN"]);
+  const adminSession = await requireRole(["ADMIN"]);
+  const { tenantId } = adminSession;
 
   const name = clean(fd, "name");
   const email = clean(fd, "email").toLowerCase();
@@ -33,7 +34,7 @@ export async function createUser(
 
   try {
     await prisma.user.create({
-      data: { name, email, role, passwordHash: await bcrypt.hash(password, 10) },
+      data: { name, email, role, tenantId, passwordHash: await bcrypt.hash(password, 10) },
     });
   } catch (e) {
     if (String(e).includes("Unique") || String(e).includes("constraint"))
@@ -51,6 +52,7 @@ export async function updateUser(
   fd: FormData,
 ): Promise<ActionState> {
   const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
 
   const name = clean(fd, "name");
   const role = clean(fd, "role");
@@ -62,7 +64,7 @@ export async function updateUser(
   if (password && password.length < 6)
     return { error: "New password must be at least 6 characters.", fieldErrors: { password: "Min 6 characters" } };
 
-  const target = await prisma.user.findUnique({ where: { id } });
+  const target = await prisma.user.findFirst({ where: { id, tenantId } });
   if (!target) return { error: "User not found." };
 
   // Don't allow removing the last active admin (lockout protection)
@@ -70,7 +72,7 @@ export async function updateUser(
     target.role === "ADMIN" && target.active && (role !== "ADMIN" || !active);
   if (wouldLoseAdmin) {
     const activeAdmins = await prisma.user.count({
-      where: { role: "ADMIN", active: true },
+      where: { role: "ADMIN", active: true, tenantId },
     });
     if (activeAdmins <= 1)
       return { error: "You must keep at least one active administrator." };
@@ -95,13 +97,14 @@ export async function updateUser(
 
 export async function deleteUser(id: string) {
   const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   if (id === session.userId) return; // can't delete yourself
 
-  const target = await prisma.user.findUnique({ where: { id } });
+  const target = await prisma.user.findFirst({ where: { id, tenantId } });
   if (!target) return;
 
   if (target.role === "ADMIN") {
-    const admins = await prisma.user.count({ where: { role: "ADMIN" } });
+    const admins = await prisma.user.count({ where: { role: "ADMIN", tenantId } });
     if (admins <= 1) return; // keep at least one admin
   }
 

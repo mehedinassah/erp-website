@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireRole, getSession } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import type { ActionState } from "@/lib/validation";
 
 type LineItem = { variantId: string; quantity: number; price: number };
@@ -23,9 +23,9 @@ function parseItems(formData: FormData): LineItem[] {
   }
 }
 
-async function nextPoNumber() {
+async function nextPoNumber(tenantId: string) {
   const year = new Date().getFullYear();
-  const count = await prisma.purchaseOrder.count();
+  const count = await prisma.purchaseOrder.count({ where: { tenantId } });
   return `PO-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
@@ -33,8 +33,8 @@ export async function createPurchaseOrder(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER"]);
-  const session = await getSession();
+  const session = await requireRole(["ADMIN", "MANAGER"]);
+  const { tenantId } = session;
 
   const supplierId = String(formData.get("partyId") ?? "");
   const warehouseId = String(formData.get("warehouseId") ?? "");
@@ -47,7 +47,7 @@ export async function createPurchaseOrder(
   if (items.length === 0) return { error: "Add at least one line item." };
 
   const total = items.reduce((s, i) => s + i.quantity * i.price, 0);
-  const poNumber = await nextPoNumber();
+  const poNumber = await nextPoNumber(tenantId);
 
   let id = "";
   try {
@@ -60,7 +60,8 @@ export async function createPurchaseOrder(
         notes,
         expectedDate: expected ? new Date(expected) : null,
         totalAmount: total,
-        userId: session?.userId ?? null,
+        tenantId,
+        userId: session.userId,
         items: {
           create: items.map((i) => ({
             variantId: i.variantId,
@@ -82,8 +83,7 @@ export async function createPurchaseOrder(
 
 /** Receive all outstanding quantity: increments stock + logs movements. */
 export async function receivePurchaseOrder(id: string) {
-  await requireRole(["ADMIN", "MANAGER"]);
-  const session = await getSession();
+  const session = await requireRole(["ADMIN", "MANAGER"]);
 
   const po = await prisma.purchaseOrder.findUnique({
     where: { id },
@@ -128,7 +128,7 @@ export async function receivePurchaseOrder(id: string) {
           reason: `Received against ${po.poNumber}`,
           referenceType: "PURCHASE_ORDER",
           referenceId: po.id,
-          userId: session?.userId ?? null,
+          userId: session.userId,
         },
       });
 

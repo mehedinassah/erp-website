@@ -6,10 +6,11 @@ import { LabelSheet } from "@/components/app/label-sheet";
 export const dynamic = "force-dynamic";
 
 export default async function LabelsPage() {
-  await requireUser();
+  const session = await requireUser();
+  const { tenantId } = session;
 
   const products = await prisma.product.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: "ACTIVE", tenantId },
     orderBy: { name: "asc" },
     select: {
       id: true,

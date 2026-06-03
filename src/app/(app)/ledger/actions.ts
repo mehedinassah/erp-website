@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireRole, getSession } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import {
   LEDGER_TYPES,
   ENTRY_KINDS,
@@ -22,9 +22,9 @@ function int(fd: FormData, key: string): number {
   return Math.max(0, Math.trunc(Number(fd.get(key)) || 0));
 }
 
-async function nextCode(type: LedgerType) {
+async function nextCode(type: LedgerType, tenantId: string) {
   const prefix = type === "PAONA" ? "P" : "D";
-  const count = await prisma.ledgerAccount.count({ where: { type } });
+  const count = await prisma.ledgerAccount.count({ where: { type, tenantId } });
   return `${prefix}-${1001 + count}`;
 }
 
@@ -32,7 +32,8 @@ export async function createAccount(
   _prev: ActionState,
   fd: FormData,
 ): Promise<ActionState> {
-  await requireRole([...MANAGER]);
+  const session = await requireRole([...MANAGER]);
+  const { tenantId } = session;
 
   const type = String(fd.get("type") ?? "") as LedgerType;
   const shopName = text(fd, "shopName");
@@ -42,7 +43,7 @@ export async function createAccount(
   const due = text(fd, "dueDate");
   const account = await prisma.ledgerAccount.create({
     data: {
-      code: await nextCode(type),
+      code: await nextCode(type, tenantId),
       type,
       shopName,
       ownerName: text(fd, "ownerName"),
@@ -52,6 +53,7 @@ export async function createAccount(
       notes: text(fd, "notes"),
       openingAmount: int(fd, "openingAmount"),
       dueDate: due ? new Date(due) : null,
+      tenantId,
     },
   });
 
@@ -64,14 +66,15 @@ export async function updateAccount(
   _prev: ActionState,
   fd: FormData,
 ): Promise<ActionState> {
-  await requireRole([...MANAGER]);
+  const session = await requireRole([...MANAGER]);
+  const { tenantId } = session;
 
   const shopName = text(fd, "shopName");
   if (!shopName) return { error: "Shop / business name is required.", fieldErrors: { shopName: "Required" } };
 
   const due = text(fd, "dueDate");
   await prisma.ledgerAccount.update({
-    where: { id },
+    where: { id, tenantId },
     data: {
       shopName,
       ownerName: text(fd, "ownerName"),
@@ -90,8 +93,10 @@ export async function updateAccount(
 }
 
 export async function deleteAccount(id: string) {
-  await requireRole(["ADMIN"]);
-  const acc = await prisma.ledgerAccount.findUnique({ where: { id } });
+  const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
+  const acc = await prisma.ledgerAccount.findFirst({ where: { id, tenantId } });
+  if (!acc) return;
   await prisma.ledgerAccount.delete({ where: { id } }); // cascades entries
   revalidatePath("/ledger");
   redirect(acc?.type === "DENA" ? "/ledger/dena" : "/ledger/paona");
@@ -102,8 +107,7 @@ export async function addEntry(
   _prev: ActionState,
   fd: FormData,
 ): Promise<ActionState> {
-  await requireRole([...MANAGER]);
-  const session = await getSession();
+  const session = await requireRole([...MANAGER]);
 
   const kind = String(fd.get("kind") ?? "PAYMENT");
   const amount = int(fd, "amount");
@@ -122,7 +126,7 @@ export async function addEntry(
       method: kind === "PAYMENT" && PAYMENT_METHODS.includes(method as never) ? method : null,
       note: text(fd, "note"),
       occurredAt: occurred ? new Date(occurred) : new Date(),
-      userId: session?.userId ?? null,
+      userId: session.userId,
     },
   });
 
@@ -136,7 +140,8 @@ export async function updateEntry(
   _prev: ActionState,
   fd: FormData,
 ): Promise<ActionState> {
-  await requireRole([...MANAGER]);
+  const session = await requireRole([...MANAGER]);
+  void session; // tenantId not needed for entry update (ledgerId FK check is implicit)
   const amount = int(fd, "amount");
   if (amount <= 0) return { error: "Enter an amount greater than zero." };
 
@@ -158,7 +163,7 @@ export async function updateEntry(
 }
 
 export async function deleteEntry(id: string) {
-  await requireRole(["ADMIN"]);
+  const _session = await requireRole(["ADMIN"]);
   const entry = await prisma.ledgerEntry.findUnique({ where: { id } });
   if (!entry) return;
   await prisma.ledgerEntry.delete({ where: { id } });

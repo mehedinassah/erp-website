@@ -10,6 +10,7 @@ export type SessionPayload = {
   email: string;
   name: string;
   role: string;
+  tenantId: string;
 };
 
 function getSecret() {
@@ -36,6 +37,7 @@ export async function verifySession(
       email: String(payload.email),
       name: String(payload.name),
       role: String(payload.role),
+      tenantId: String(payload.tenantId),
     };
   } catch {
     return null;

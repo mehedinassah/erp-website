@@ -9,5 +9,5 @@ export default async function DenaPage({
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
   const [session, sp] = await Promise.all([requireUser(), searchParams]);
-  return <LedgerListView type="DENA" sp={sp} role={session.role} />;
+  return <LedgerListView type="DENA" sp={sp} role={session.role} tenantId={session.tenantId} />;
 }

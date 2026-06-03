@@ -22,10 +22,12 @@ export async function LedgerListView({
   type,
   sp,
   role,
+  tenantId,
 }: {
   type: LedgerType;
   sp: SP;
   role: string;
+  tenantId: string;
 }) {
   const isPaona = type === "PAONA";
   const manage = canManageLedger(role);
@@ -33,7 +35,7 @@ export async function LedgerListView({
   const status = sp.status ?? "";
 
   const accounts = await prisma.ledgerAccount.findMany({
-    where: { type },
+    where: { type, tenantId },
     orderBy: { createdAt: "desc" },
     include: { entries: { select: { kind: true, amount: true } } },
   });

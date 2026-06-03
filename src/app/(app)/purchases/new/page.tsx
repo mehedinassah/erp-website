@@ -9,12 +9,14 @@ import { createPurchaseOrder } from "../actions";
 export const dynamic = "force-dynamic";
 
 export default async function NewPurchaseOrderPage() {
-  await requireRole(["ADMIN", "MANAGER"]);
+  const session = await requireRole(["ADMIN", "MANAGER"]);
+  const { tenantId } = session;
 
   const [suppliers, warehouses, variants] = await Promise.all([
-    prisma.supplier.findMany({ orderBy: { name: "asc" } }),
-    prisma.warehouse.findMany({ orderBy: { name: "asc" } }),
+    prisma.supplier.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
+    prisma.warehouse.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.variant.findMany({
+      where: { product: { tenantId } },
       include: { product: true },
       orderBy: { product: { name: "asc" } },
     }),

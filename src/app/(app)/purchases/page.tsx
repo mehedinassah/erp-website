@@ -18,7 +18,9 @@ export const dynamic = "force-dynamic";
 
 export default async function PurchasesPage() {
   const session = await requireUser();
+  const { tenantId } = session;
   const orders = await prisma.purchaseOrder.findMany({
+    where: { tenantId },
     orderBy: { orderDate: "desc" },
     include: {
       supplier: true,

@@ -22,9 +22,10 @@ export default async function UsersPage({
   searchParams: Promise<{ deleted?: string }>;
 }) {
   const session = await requireRole(["ADMIN"]);
+  const { tenantId } = session;
   const sp = await searchParams;
 
-  const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+  const users = await prisma.user.findMany({ where: { tenantId }, orderBy: { createdAt: "asc" } });
 
   return (
     <div className="max-w-4xl">
