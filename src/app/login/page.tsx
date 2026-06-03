@@ -19,8 +19,8 @@ export default function LoginPage() {
           }}
         />
         <div className="relative">
-          <div className="relative h-14 w-52 overflow-hidden rounded-xl bg-white">
-            <Image src="/perico.png" alt="PERICO" fill className="object-cover" style={{ objectPosition: "center 50%" }} priority />
+          <div className="relative h-14 w-52 overflow-hidden">
+            <Image src="/perico.png" alt="PERICO" fill className="object-cover brightness-0 invert" style={{ objectPosition: "center 50%" }} priority />
           </div>
         </div>
 
@@ -44,8 +44,8 @@ export default function LoginPage() {
         <div className="w-full max-w-sm animate-rise">
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">
-            <div className="relative h-12 w-44 overflow-hidden rounded-xl border border-border bg-white shadow-sm">
-              <Image src="/perico.png" alt="PERICO" fill className="object-cover" style={{ objectPosition: "center 50%" }} priority />
+            <div className="relative h-12 w-44 overflow-hidden">
+              <Image src="/perico.png" alt="PERICO" fill className="object-cover [mix-blend-mode:multiply] dark:[mix-blend-mode:normal] dark:brightness-0 dark:invert" style={{ objectPosition: "center 50%" }} priority />
             </div>
           </div>
 

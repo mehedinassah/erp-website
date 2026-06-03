@@ -125,12 +125,12 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
 function Brand() {
   return (
     <Link href="/" className="block px-4 py-3">
-      <div className="relative h-12 w-full overflow-hidden rounded-lg bg-white">
+      <div className="relative h-12 w-full overflow-hidden">
         <Image
           src="/perico.png"
           alt="PERICO"
           fill
-          className="object-cover"
+          className="object-cover [mix-blend-mode:multiply] dark:[mix-blend-mode:normal] dark:brightness-0 dark:invert"
           style={{ objectPosition: "center 50%" }}
           priority
         />
