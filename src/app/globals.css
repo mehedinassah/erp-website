@@ -208,3 +208,17 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Print: tidy margins, keep each barcode label intact across page breaks */
+@media print {
+  @page {
+    margin: 8mm;
+  }
+  .label {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .label-sheet {
+    gap: 6px;
+  }
+}

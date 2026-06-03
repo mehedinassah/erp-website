@@ -8,6 +8,7 @@ import {
   Users,
   Settings,
   ScanLine,
+  Tags,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,7 +31,10 @@ export const NAV: NavSection[] = [
   },
   {
     section: "Catalog",
-    items: [{ href: "/products", label: "Products", icon: Shirt }],
+    items: [
+      { href: "/products", label: "Products", icon: Shirt },
+      { href: "/labels", label: "Barcode labels", icon: Tags },
+    ],
   },
   {
     section: "Inventory",
