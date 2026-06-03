@@ -53,8 +53,8 @@ export default async function AccountProfile({
     account.openingAmount,
     account.entries,
   );
-  const withBalance = withRunningBalance(account.openingAmount, account.entries);
-  const ledgerRows = [...withBalance].reverse(); // newest first
+  // Oldest → newest: opening balance first, latest transaction last.
+  const ledgerRows = withRunningBalance(account.openingAmount, account.entries);
   const payments = account.entries.filter((e) => e.kind === "PAYMENT");
   const lastPayment = payments.length ? payments[payments.length - 1] : null;
   const accent = isPaona ? "text-success" : "text-warning";

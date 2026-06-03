@@ -302,6 +302,8 @@ async function main() {
         phone: a.phone,
         category: a.cat,
         openingAmount: a.opening,
+        // Account opened ~90 days ago, before any payment
+        createdAt: new Date(Date.now() - 90 * 86400000),
         entries: {
           create: a.pays.map(([amount, method, day]) => ({
             kind: "PAYMENT",
