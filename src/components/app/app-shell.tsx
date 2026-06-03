@@ -111,7 +111,6 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
       <button
         type="button"
         onClick={onMenuClick}
-        onTouchStart={onMenuClick}
         className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-muted-foreground"
       >
         <Menu className="size-[18px]" />
@@ -157,7 +156,6 @@ function DrawerThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      onTouchStart={toggle}
       className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground w-full"
     >
       {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
@@ -236,45 +234,50 @@ export function AppShell({
         </div>
       </aside>
 
-      {/* Mobile drawer — no animation so it's always immediately visible */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop — onClick only, no onTouchStart (prevents instant close) */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileOpen(false)}
-          />
-          {/* Drawer */}
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-border bg-surface shadow-xl">
-            <div className="flex items-center justify-between pr-3">
-              <Brand />
+      {/* Mobile drawer — always in DOM, shown/hidden via CSS (no timing races) */}
+      <div className="lg:hidden print:hidden">
+        {/* Backdrop */}
+        <div
+          className={cn(
+            "fixed inset-0 z-40 bg-black/50 transition-opacity duration-300",
+            mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
+          )}
+          onClick={() => setMobileOpen(false)}
+        />
+        {/* Drawer */}
+        <aside
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-surface shadow-xl transition-transform duration-300",
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+        >
+          <div className="flex items-center justify-between pr-3">
+            <Brand />
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
+              className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-muted"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+          <NavLinks role={session.role} onNavigate={() => setMobileOpen(false)} />
+          {/* Footer: theme toggle + logout */}
+          <div className="hairline space-y-0.5 p-3">
+            <DrawerThemeToggle />
+            <form action={logoutAction}>
               <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                onTouchStart={() => setMobileOpen(false)}
-                aria-label="Close menu"
-                className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-muted"
+                type="submit"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10"
               >
-                <X className="size-5" />
+                <LogOut className="size-4" />
+                Sign out
               </button>
-            </div>
-            <NavLinks role={session.role} onNavigate={() => setMobileOpen(false)} />
-            {/* Footer: theme toggle + logout — always reachable on mobile */}
-            <div className="hairline space-y-0.5 p-3">
-              <DrawerThemeToggle />
-              <form action={logoutAction}>
-                <button
-                  type="submit"
-                  className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="size-4" />
-                  Sign out
-                </button>
-              </form>
-            </div>
-          </aside>
-        </div>
-      )}
+            </form>
+          </div>
+        </aside>
+      </div>
 
       {/* Main column */}
       <div className="lg:pl-64 print:pl-0">
@@ -283,9 +286,8 @@ export function AppShell({
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            onTouchStart={() => setMobileOpen(true)}
             aria-label="Open menu"
-            className="grid size-9 place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted hidden sm:grid lg:hidden"
+            className="hidden size-9 place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted sm:grid lg:hidden"
           >
             <Menu className="size-5" />
           </button>
