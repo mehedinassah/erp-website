@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -33,15 +34,17 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${playfair.variable} ${inter.variable} h-full`}
     >
-      <head>
-        <script
-          // Apply saved theme before paint to avoid a flash of the wrong theme.
+      <body className="min-h-full">
+        {/* Apply saved theme before paint — prevents flash of wrong theme */}
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('rong-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
           }}
         />
-      </head>
-      <body className="min-h-full">{children}</body>
+        {children}
+      </body>
     </html>
   );
 }
