@@ -128,6 +128,14 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
   );
 
   async function startCamera() {
+    // Camera requires HTTPS (or localhost). HTTP over local IP is blocked by browsers.
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      flash(
+        "error",
+        "Camera needs HTTPS. On PC use localhost:3001. On phone run: npx ngrok http 3001",
+      );
+      return;
+    }
     try {
       const { BrowserMultiFormatReader } = await import("@zxing/browser");
       const reader = new BrowserMultiFormatReader();
@@ -142,7 +150,7 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
       controlsRef.current = controls;
     } catch {
       setCameraOn(false);
-      flash("error", "Could not access the camera. Check permissions.");
+      flash("error", "Camera blocked — allow camera access in your browser settings.");
     }
   }
 

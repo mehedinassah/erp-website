@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   Menu, X, LogOut, ChevronsUpDown, Search,
-  LayoutDashboard, Package, ScanLine, BookOpen,
+  LayoutDashboard, Package, ScanLine, ArrowLeftRight, Moon, Sun,
 } from "lucide-react";
 import { NAV } from "./nav-config";
 import { ThemeToggle } from "./theme-toggle";
@@ -59,7 +59,7 @@ function NavLinks({
                     href={item.href}
                     onClick={onNavigate}
                     className={cn(
-                      "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      "group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                       active
                         ? "bg-accent-soft text-accent"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -81,17 +81,18 @@ function NavLinks({
   );
 }
 
+/* ── Mobile bottom nav ─────────────────────────────────────────────── */
 const BOTTOM_NAV = [
   { href: "/", label: "Home", icon: LayoutDashboard },
   { href: "/products", label: "Products", icon: Package },
   { href: "/pos", label: "POS", icon: ScanLine },
-  { href: "/ledger", label: "Ledger", icon: BookOpen },
+  { href: "/ledger/paona", label: "Paona", icon: ArrowLeftRight },
 ] as const;
 
 function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-30 flex h-14 items-stretch border-t border-border bg-background/90 backdrop-blur-md lg:hidden print:hidden">
+    <nav className="fixed bottom-0 inset-x-0 z-30 flex h-14 items-stretch border-t border-border bg-background lg:hidden print:hidden">
       {BOTTOM_NAV.map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
@@ -100,7 +101,7 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
             href={href}
             className={cn(
               "flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
-              active ? "text-accent" : "text-muted-foreground hover:text-foreground",
+              active ? "text-accent" : "text-muted-foreground",
             )}
           >
             <Icon className="size-[18px]" />
@@ -109,8 +110,9 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
         );
       })}
       <button
+        type="button"
         onClick={onMenuClick}
-        className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+        className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-muted-foreground"
       >
         <Menu className="size-[18px]" />
         More
@@ -119,6 +121,7 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
   );
 }
 
+/* ── Brand ─────────────────────────────────────────────────────────── */
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-2.5 px-5 py-5">
@@ -137,11 +140,40 @@ function Brand() {
   );
 }
 
+/* ── Inline theme toggle for use inside the drawer ─────────────────── */
+function DrawerThemeToggle() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"));
+  }, []);
+  function toggle() {
+    const root = document.documentElement;
+    const next = !root.classList.contains("dark");
+    root.classList.toggle("dark", next);
+    try { localStorage.setItem("rong-theme", next ? "dark" : "light"); } catch {}
+    setDark(next);
+  }
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground w-full"
+    >
+      {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      {dark ? "Light mode" : "Dark mode"}
+    </button>
+  );
+}
+
+/* ── Desktop user dropdown ─────────────────────────────────────────── */
 function UserMenu({ session }: { session: Session }) {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
-        <button className="flex items-center gap-2 rounded-md p-1 pr-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer">
+        <button
+          type="button"
+          className="flex items-center gap-2 rounded-md p-1 pr-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+        >
           <span className="grid size-9 place-items-center rounded-md bg-primary text-xs font-semibold text-primary-foreground">
             {initials(session.name)}
           </span>
@@ -182,6 +214,7 @@ function UserMenu({ session }: { session: Session }) {
   );
 }
 
+/* ── App shell ─────────────────────────────────────────────────────── */
 export function AppShell({
   session,
   children,
@@ -202,25 +235,41 @@ export function AppShell({
         </div>
       </aside>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — no animation so it's always immediately visible */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-primary/40 backdrop-blur-sm animate-fade-in"
+            className="absolute inset-0 bg-black/50"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-border bg-surface shadow-xl animate-rise">
+          {/* Drawer */}
+          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-border bg-surface shadow-xl">
             <div className="flex items-center justify-between pr-3">
               <Brand />
               <button
+                type="button"
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close menu"
-                className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-muted cursor-pointer"
+                className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-muted"
               >
                 <X className="size-5" />
               </button>
             </div>
             <NavLinks role={session.role} onNavigate={() => setMobileOpen(false)} />
+            {/* Footer: theme toggle + logout — always reachable on mobile */}
+            <div className="hairline space-y-0.5 p-3">
+              <DrawerThemeToggle />
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="size-4" />
+                  Sign out
+                </button>
+              </form>
+            </div>
           </aside>
         </div>
       )}
@@ -229,9 +278,10 @@ export function AppShell({
       <div className="lg:pl-64 print:pl-0">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md sm:px-6 print:hidden">
           <button
+            type="button"
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
-            className="grid size-9 place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted lg:hidden cursor-pointer"
+            className="grid size-9 place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted lg:hidden"
           >
             <Menu className="size-5" />
           </button>
