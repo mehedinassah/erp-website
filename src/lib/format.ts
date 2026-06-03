@@ -21,6 +21,22 @@ export function formatBDTCompact(amount: number): string {
   return `৳${amount}`;
 }
 
+/**
+ * Bengali/South-Asian currency grouping: last 3 digits, then groups of 2.
+ * 950000 → ৳9,50,000 · 10000000 → ৳1,00,00,000
+ */
+export function formatTaka(amount: number): string {
+  const neg = amount < 0;
+  const s = Math.abs(Math.round(amount)).toString();
+  let lastThree = s.slice(-3);
+  let rest = s.slice(0, -3);
+  if (rest) {
+    lastThree = "," + lastThree;
+    rest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+  }
+  return `${neg ? "−" : ""}৳${rest}${lastThree}`;
+}
+
 const numberFmt = new Intl.NumberFormat("en-BD");
 export function formatNumber(n: number): string {
   return numberFmt.format(n);

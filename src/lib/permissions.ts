@@ -19,3 +19,8 @@ export const canOperate = (role: string) =>
 /** See financial figures (revenue + sales trend). Hidden from Staff. */
 export const canViewFinancials = (role: string) =>
   role === "ADMIN" || role === "MANAGER";
+
+/** Edit the Dena–Paona ledger (accounts + transactions). Admin + Manager.
+ *  Staff can view only; delete is admin-only via canDelete. */
+export const canManageLedger = (role: string) =>
+  role === "ADMIN" || role === "MANAGER";

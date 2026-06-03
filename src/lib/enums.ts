@@ -38,6 +38,28 @@ export type SalesOrderStatus = (typeof SO_STATUSES)[number];
 
 export const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
+// ---- Dena–Paona ledger ----
+export const LEDGER_TYPES = ["PAONA", "DENA"] as const;
+export type LedgerType = (typeof LEDGER_TYPES)[number];
+
+export const ENTRY_KINDS = ["PAYMENT", "CHARGE"] as const;
+export type EntryKind = (typeof ENTRY_KINDS)[number];
+
+export const PAYMENT_METHODS = ["CASH", "BANK", "MOBILE", "OTHER"] as const;
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+export const METHOD_LABEL: Record<PaymentMethod, string> = {
+  CASH: "Cash",
+  BANK: "Bank",
+  MOBILE: "Mobile banking",
+  OTHER: "Other",
+};
+
+export const LEDGER_TYPE_LABEL: Record<LedgerType, string> = {
+  PAONA: "Paona (receivable)",
+  DENA: "Dena (payable)",
+};
+
 // Human-friendly labels + tone for status badges
 export const PO_STATUS_LABEL: Record<PurchaseOrderStatus, string> = {
   DRAFT: "Draft",

@@ -15,7 +15,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 // ----------------------------------------------------------------------------
@@ -34,6 +33,7 @@ model User {
   stockMovements StockMovement[]
   purchaseOrders PurchaseOrder[]
   salesOrders    SalesOrder[]
+  ledgerEntries  LedgerEntry[]
 }
 
 // ----------------------------------------------------------------------------
@@ -255,4 +255,46 @@ model SOItem {
   variant    Variant    @relation(fields: [variantId], references: [id])
 
   @@index([salesOrderId])
+}
+
+// ----------------------------------------------------------------------------
+// Dena–Paona (Payables / Receivables ledger)
+// ----------------------------------------------------------------------------
+model LedgerAccount {
+  id            String    @id @default(cuid())
+  code          String    @unique // P-1023 (Paona) / D-1023 (Dena)
+  type          String // PAONA (they owe me) | DENA (I owe them)
+  shopName      String
+  ownerName     String?
+  address       String?
+  phone         String?
+  category      String?
+  notes         String?
+  openingAmount Int       @default(0) // BDT — original due/payable at creation
+  dueDate       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  entries LedgerEntry[]
+
+  @@index([type])
+}
+
+model LedgerEntry {
+  id         String   @id @default(cuid())
+  kind       String // PAYMENT (settles balance) | CHARGE (adds more due)
+  amount     Int // BDT, positive
+  method     String? // CASH | BANK | MOBILE | OTHER
+  note       String?
+  occurredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  ledgerId String
+  userId   String?
+
+  ledger LedgerAccount @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  user   User?         @relation(fields: [userId], references: [id])
+
+  @@index([ledgerId])
+  @@index([occurredAt])
 }

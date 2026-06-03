@@ -9,6 +9,9 @@ import {
   Settings,
   ScanLine,
   Tags,
+  Wallet,
+  ArrowDownLeft,
+  ArrowUpRight,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,6 +56,14 @@ export const NAV: NavSection[] = [
       { href: "/pos", label: "Point of sale", icon: ScanLine },
       { href: "/sales", label: "Sales orders", icon: Receipt },
       { href: "/customers", label: "Customers", icon: Users },
+    ],
+  },
+  {
+    section: "Dena–Paona",
+    items: [
+      { href: "/ledger", label: "Overview", icon: Wallet },
+      { href: "/ledger/paona", label: "Paona (receivable)", icon: ArrowDownLeft },
+      { href: "/ledger/dena", label: "Dena (payable)", icon: ArrowUpRight },
     ],
   },
   {

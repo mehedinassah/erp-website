@@ -274,6 +274,43 @@ async function main() {
   }
   console.log(`✓ ${orderNo} sales orders across 45 days`);
 
+  // Dena–Paona ledger
+  await prisma.ledgerEntry.deleteMany();
+  await prisma.ledgerAccount.deleteMany();
+  const LEDGER = [
+    { type: "PAONA", shop: "M/S Rahman Traders", owner: "Abdur Rahman", addr: "Islampur, Dhaka", phone: "+8801711100200", cat: "Wholesale", opening: 1000000, pays: [[50000, "CASH", 12], [150000, "BANK", 4]] },
+    { type: "PAONA", shop: "Karim Cloth House", owner: "Md. Karim", addr: "Tan Bazar, Narayanganj", phone: "+8801712200300", cat: "Retailer", opening: 350000, pays: [[100000, "MOBILE", 6]] },
+    { type: "PAONA", shop: "Nila Fashion", owner: "Nila Akter", addr: "Chittagong", phone: "+8801713300400", cat: "Boutique", opening: 220000, pays: [[120000, "CASH", 9], [100000, "CASH", 1]] },
+    { type: "PAONA", shop: "Hasan Garments", owner: "Hasan Ali", addr: "Bangabazar, Dhaka", phone: "+8801714400500", cat: "Wholesale", opening: 480000, pays: [] },
+    { type: "DENA", shop: "Tangail Weavers Co-op", owner: "Rafiqul Islam", addr: "Tangail", phone: "+8801715500600", cat: "Supplier", opening: 600000, pays: [[200000, "BANK", 8]] },
+    { type: "DENA", shop: "Bengal Silk House", owner: "Nusrat Jahan", addr: "Rajshahi", phone: "+8801716600700", cat: "Supplier", opening: 250000, pays: [[250000, "BANK", 2]] },
+    { type: "DENA", shop: "Dhaka Fabric Importers", owner: "Tanvir Hasan", addr: "Old Dhaka", phone: "+8801717700800", cat: "Importer", opening: 900000, pays: [[100000, "MOBILE", 5]] },
+  ] as const;
+  let pCode = 1001, dCode = 1001;
+  for (const a of LEDGER) {
+    await prisma.ledgerAccount.create({
+      data: {
+        code: a.type === "PAONA" ? `P-${pCode++}` : `D-${dCode++}`,
+        type: a.type,
+        shopName: a.shop,
+        ownerName: a.owner,
+        address: a.addr,
+        phone: a.phone,
+        category: a.cat,
+        openingAmount: a.opening,
+        entries: {
+          create: a.pays.map(([amount, method, day]) => ({
+            kind: "PAYMENT",
+            amount: amount as number,
+            method: method as string,
+            occurredAt: new Date(Date.now() - (day as number) * 86400000),
+          })),
+        },
+      },
+    });
+  }
+  console.log(`✓ ${LEDGER.length} Dena–Paona ledger accounts`);
+
   console.log("\n✅ Seed complete.\n");
   console.log("   Login:  admin@rong.com.bd  /  password123");
 }
