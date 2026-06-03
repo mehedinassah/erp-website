@@ -7,6 +7,8 @@ import {
   MapPin,
   CalendarClock,
   Tag,
+  Download,
+  HandCoins,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
@@ -53,6 +55,8 @@ export default async function AccountProfile({
   );
   const withBalance = withRunningBalance(account.openingAmount, account.entries);
   const ledgerRows = [...withBalance].reverse(); // newest first
+  const payments = account.entries.filter((e) => e.kind === "PAYMENT");
+  const lastPayment = payments.length ? payments[payments.length - 1] : null;
   const accent = isPaona ? "text-success" : "text-warning";
   const backHref = isPaona ? "/ledger/paona" : "/ledger/dena";
 
@@ -78,7 +82,12 @@ export default async function AccountProfile({
           title={account.shopName}
           description={account.ownerName ?? undefined}
         >
-          <PrintButton label="Print statement" />
+          <Button asChild variant="outline">
+            <a href={`/ledger/${account.id}/statement`} download>
+              <Download className="size-4" /> Download CSV
+            </a>
+          </Button>
+          <PrintButton label="Print / PDF" />
           {manage && (
             <>
               <Button asChild variant="outline">
@@ -163,6 +172,14 @@ export default async function AccountProfile({
             {account.dueDate && (
               <p className="flex items-center gap-2">
                 <CalendarClock className="size-4 text-muted-foreground" /> Due {formatDate(account.dueDate)}
+              </p>
+            )}
+            {lastPayment && (
+              <p className="flex items-center gap-2">
+                <HandCoins className="size-4 text-success" />
+                Last {isPaona ? "collection" : "payment"}:{" "}
+                <span className="font-medium">{formatTaka(lastPayment.amount)}</span>
+                <span className="text-muted-foreground">· {formatDate(lastPayment.occurredAt)}</span>
               </p>
             )}
             <p className="text-xs text-muted-foreground">
