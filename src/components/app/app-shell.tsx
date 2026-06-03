@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   Menu, X, LogOut, ChevronsUpDown, Search,
-  LayoutDashboard, Package, ScanLine, ArrowLeftRight, Moon, Sun,
+  LayoutDashboard, Package, ScanLine, Moon, Sun,
 } from "lucide-react";
 import { NAV } from "./nav-config";
 import { ThemeToggle } from "./theme-toggle";
@@ -86,7 +86,6 @@ const BOTTOM_NAV = [
   { href: "/", label: "Home", icon: LayoutDashboard },
   { href: "/products", label: "Products", icon: Package },
   { href: "/pos", label: "POS", icon: ScanLine },
-  { href: "/ledger/paona", label: "Paona", icon: ArrowLeftRight },
 ] as const;
 
 function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
@@ -240,11 +239,10 @@ export function AppShell({
       {/* Mobile drawer — no animation so it's always immediately visible */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
+          {/* Backdrop — onClick only, no onTouchStart (prevents instant close) */}
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileOpen(false)}
-            onTouchStart={() => setMobileOpen(false)}
           />
           {/* Drawer */}
           <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-border bg-surface shadow-xl">
