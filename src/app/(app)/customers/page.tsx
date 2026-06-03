@@ -50,8 +50,8 @@ export default async function CustomersPage() {
             <THead>
               <TR className="hover:bg-transparent">
                 <TH>Customer</TH>
-                <TH>Contact</TH>
-                <TH className="text-center">Orders</TH>
+                <TH className="hidden sm:table-cell">Contact</TH>
+                <TH className="hidden sm:table-cell text-center">Orders</TH>
                 <TH className="text-right">Lifetime value</TH>
                 <TH className="text-right">Actions</TH>
               </TR>
@@ -67,7 +67,7 @@ export default async function CustomersPage() {
                         <p className="text-xs text-muted-foreground">{c.address}</p>
                       )}
                     </TD>
-                    <TD>
+                    <TD className="hidden sm:table-cell">
                       <div className="space-y-0.5">
                         {c.phone && (
                           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -84,7 +84,7 @@ export default async function CustomersPage() {
                         )}
                       </div>
                     </TD>
-                    <TD className="tabular text-center">{c.salesOrders.length}</TD>
+                    <TD className="hidden sm:table-cell tabular text-center">{c.salesOrders.length}</TD>
                     <TD className="tabular text-right font-medium">
                       {formatBDT(ltv)}
                     </TD>

@@ -51,8 +51,8 @@ export default async function SuppliersPage() {
             <THead>
               <TR className="hover:bg-transparent">
                 <TH>Supplier</TH>
-                <TH>Contact</TH>
-                <TH className="text-center">Orders</TH>
+                <TH className="hidden sm:table-cell">Contact</TH>
+                <TH className="hidden sm:table-cell text-center">Orders</TH>
                 {manage && <TH className="text-right">Actions</TH>}
               </TR>
             </THead>
@@ -65,7 +65,7 @@ export default async function SuppliersPage() {
                       <p className="text-xs text-muted-foreground">{s.address}</p>
                     )}
                   </TD>
-                  <TD>
+                  <TD className="hidden sm:table-cell">
                     <div className="space-y-0.5 text-sm">
                       {s.contactName && <p>{s.contactName}</p>}
                       {s.phone && (
@@ -80,7 +80,7 @@ export default async function SuppliersPage() {
                       )}
                     </div>
                   </TD>
-                  <TD className="text-center">
+                  <TD className="hidden sm:table-cell text-center">
                     <Badge tone="neutral">{s._count.purchaseOrders}</Badge>
                   </TD>
                   {manage && (

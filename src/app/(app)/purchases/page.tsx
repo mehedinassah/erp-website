@@ -56,9 +56,9 @@ export default async function PurchasesPage() {
             <THead>
               <TR className="hover:bg-transparent">
                 <TH>PO number</TH>
-                <TH>Supplier</TH>
-                <TH>Date</TH>
-                <TH className="text-center">Items</TH>
+                <TH className="hidden sm:table-cell">Supplier</TH>
+                <TH className="hidden sm:table-cell">Date</TH>
+                <TH className="hidden sm:table-cell text-center">Items</TH>
                 <TH className="text-right">Total</TH>
                 <TH className="text-right">Status</TH>
               </TR>
@@ -72,9 +72,9 @@ export default async function PurchasesPage() {
                     </Link>
                     <p className="text-xs text-muted-foreground">{o.warehouse.code}</p>
                   </TD>
-                  <TD className="text-muted-foreground">{o.supplier.name}</TD>
-                  <TD className="text-muted-foreground">{formatDate(o.orderDate)}</TD>
-                  <TD className="tabular text-center">{o._count.items}</TD>
+                  <TD className="hidden sm:table-cell text-muted-foreground">{o.supplier.name}</TD>
+                  <TD className="hidden sm:table-cell text-muted-foreground">{formatDate(o.orderDate)}</TD>
+                  <TD className="hidden sm:table-cell tabular text-center">{o._count.items}</TD>
                   <TD className="tabular text-right font-medium">{formatBDT(o.totalAmount)}</TD>
                   <TD className="text-right">
                     <Badge tone={statusTone(o.status)}>

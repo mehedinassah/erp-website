@@ -4,7 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Menu, X, LogOut, ChevronsUpDown, Search } from "lucide-react";
+import {
+  Menu, X, LogOut, ChevronsUpDown, Search,
+  LayoutDashboard, Package, ScanLine, BookOpen,
+} from "lucide-react";
 import { NAV } from "./nav-config";
 import { ThemeToggle } from "./theme-toggle";
 import { logoutAction } from "@/app/(app)/account-actions";
@@ -74,6 +77,44 @@ function NavLinks({
           </ul>
         </div>
       ))}
+    </nav>
+  );
+}
+
+const BOTTOM_NAV = [
+  { href: "/", label: "Home", icon: LayoutDashboard },
+  { href: "/products", label: "Products", icon: Package },
+  { href: "/pos", label: "POS", icon: ScanLine },
+  { href: "/ledger", label: "Ledger", icon: BookOpen },
+] as const;
+
+function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
+  const pathname = usePathname();
+  return (
+    <nav className="fixed bottom-0 inset-x-0 z-30 flex h-14 items-stretch border-t border-border bg-background/90 backdrop-blur-md lg:hidden print:hidden">
+      {BOTTOM_NAV.map(({ href, label, icon: Icon }) => {
+        const active = isActive(pathname, href);
+        return (
+          <Link
+            key={href}
+            href={href}
+            className={cn(
+              "flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
+              active ? "text-accent" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Icon className="size-[18px]" />
+            {label}
+          </Link>
+        );
+      })}
+      <button
+        onClick={onMenuClick}
+        className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <Menu className="size-[18px]" />
+        More
+      </button>
     </nav>
   );
 }
@@ -211,8 +252,10 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="px-4 py-6 sm:px-6 lg:px-8 print:p-0">{children}</main>
+        <main className="px-4 py-6 pb-20 sm:px-6 lg:px-8 lg:pb-6 print:p-0">{children}</main>
       </div>
+
+      <BottomNav onMenuClick={() => setMobileOpen(true)} />
     </div>
   );
 }

@@ -120,9 +120,9 @@ export default async function ProductsPage({
             <THead>
               <TR className="hover:bg-transparent">
                 <TH>Product</TH>
-                <TH>Category</TH>
-                <TH className="text-center">Variants</TH>
-                <TH className="text-right">In stock</TH>
+                <TH className="hidden sm:table-cell">Category</TH>
+                <TH className="hidden sm:table-cell text-center">Variants</TH>
+                <TH className="hidden md:table-cell text-right">In stock</TH>
                 <TH className="text-right">Price</TH>
                 <TH className="text-right">Status</TH>
               </TR>
@@ -146,8 +146,8 @@ export default async function ProductsPage({
                       </Link>
                       <p className="text-xs text-muted-foreground">{p.sku}</p>
                     </TD>
-                    <TD className="text-muted-foreground">{p.category.name}</TD>
-                    <TD>
+                    <TD className="hidden sm:table-cell text-muted-foreground">{p.category.name}</TD>
+                    <TD className="hidden sm:table-cell">
                       <div className="flex items-center justify-center gap-2">
                         <span className="tabular text-sm">
                           {p.variants.length}
@@ -163,7 +163,7 @@ export default async function ProductsPage({
                         </div>
                       </div>
                     </TD>
-                    <TD className="tabular text-right">{formatNumber(stock)}</TD>
+                    <TD className="hidden md:table-cell tabular text-right">{formatNumber(stock)}</TD>
                     <TD className="tabular text-right font-medium">
                       {formatBDT(p.sellPrice)}
                     </TD>

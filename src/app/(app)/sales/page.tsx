@@ -54,9 +54,9 @@ export default async function SalesPage() {
             <THead>
               <TR className="hover:bg-transparent">
                 <TH>Order</TH>
-                <TH>Customer</TH>
-                <TH>Date</TH>
-                <TH className="text-center">Items</TH>
+                <TH className="hidden sm:table-cell">Customer</TH>
+                <TH className="hidden sm:table-cell">Date</TH>
+                <TH className="hidden sm:table-cell text-center">Items</TH>
                 <TH className="text-right">Total</TH>
                 <TH className="text-right">Status</TH>
               </TR>
@@ -69,11 +69,11 @@ export default async function SalesPage() {
                       {o.orderNumber}
                     </Link>
                   </TD>
-                  <TD className="text-muted-foreground">
+                  <TD className="hidden sm:table-cell text-muted-foreground">
                     {o.customer?.name ?? "Walk-in"}
                   </TD>
-                  <TD className="text-muted-foreground">{formatDate(o.orderDate)}</TD>
-                  <TD className="tabular text-center">{o._count.items}</TD>
+                  <TD className="hidden sm:table-cell text-muted-foreground">{formatDate(o.orderDate)}</TD>
+                  <TD className="hidden sm:table-cell tabular text-center">{o._count.items}</TD>
                   <TD className="tabular text-right font-medium">{formatBDT(o.total)}</TD>
                   <TD className="text-right">
                     <Badge tone={statusTone(o.status)}>

@@ -233,6 +233,21 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
   }
 
   return (
+    <div className="relative">
+    {/* Mobile sticky checkout bar */}
+    {cart.length > 0 && (
+      <div className="fixed bottom-14 left-0 right-0 z-20 flex items-center gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-md lg:hidden">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">
+            {itemCount} {itemCount === 1 ? "item" : "items"}
+          </p>
+          <p className="text-xs text-muted-foreground">{formatBDT(total)}</p>
+        </div>
+        <Button variant="gold" size="sm" onClick={checkout} disabled={pending || cart.length === 0}>
+          {pending ? <Loader2 className="size-4 animate-spin" /> : "Complete sale →"}
+        </Button>
+      </div>
+    )}
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
       {/* Scanner */}
       <div className="space-y-4 lg:col-span-3">
@@ -429,6 +444,7 @@ export function PosTerminal({ warehouses }: { warehouses: Warehouse[] }) {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   );
 }
