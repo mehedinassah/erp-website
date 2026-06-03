@@ -6,6 +6,7 @@ import {
   Factory,
   Receipt,
   Users,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 
@@ -13,6 +14,7 @@ export type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
+  adminOnly?: boolean;
 };
 
 export type NavSection = {
@@ -45,6 +47,12 @@ export const NAV: NavSection[] = [
     items: [
       { href: "/sales", label: "Sales orders", icon: Receipt },
       { href: "/customers", label: "Customers", icon: Users },
+    ],
+  },
+  {
+    section: "System",
+    items: [
+      { href: "/settings", label: "Settings", icon: Settings, adminOnly: true },
     ],
   },
 ];

@@ -156,8 +156,8 @@ export async function archiveProduct(id: string) {
   revalidatePath(`/products/${id}`);
 }
 
-/** Admin only. Hard-deletes a product (and its variants/stock). If the product
- *  has sales or purchase history it is archived instead, to preserve records. */
+/** Admin only. Permanently deletes a product, its variants, stock, and any
+ *  order lines that referenced it (so seeded/placeholder data can be cleared). */
 export async function deleteProduct(id: string) {
   await requireRole(["ADMIN"]);
 
@@ -167,21 +167,16 @@ export async function deleteProduct(id: string) {
   });
   const variantIds = variants.map((v) => v.id);
 
-  const [soItems, poItems] = await Promise.all([
-    prisma.sOItem.count({ where: { variantId: { in: variantIds } } }),
-    prisma.pOItem.count({ where: { variantId: { in: variantIds } } }),
-  ]);
+  await prisma.$transaction(async (tx) => {
+    if (variantIds.length) {
+      // Remove order lines referencing these variants (no cascade on those FKs)
+      await tx.sOItem.deleteMany({ where: { variantId: { in: variantIds } } });
+      await tx.pOItem.deleteMany({ where: { variantId: { in: variantIds } } });
+    }
+    // Cascades variants → stock levels & movements
+    await tx.product.delete({ where: { id } });
+  });
 
-  if (soItems > 0 || poItems > 0) {
-    // Has transaction history — archive instead of destroying records
-    await prisma.product.update({ where: { id }, data: { status: "ARCHIVED" } });
-    revalidatePath("/products");
-    revalidatePath(`/products/${id}`);
-    redirect("/products?archived=1");
-  }
-
-  // Cascades to variants → stock levels & movements
-  await prisma.product.delete({ where: { id } });
   revalidatePath("/products");
   redirect("/products?deleted=1");
 }

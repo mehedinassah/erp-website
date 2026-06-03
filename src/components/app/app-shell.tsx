@@ -27,11 +27,21 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavLinks({
+  role,
+  onNavigate,
+}: {
+  role: string;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
+  const groups = NAV.map((g) => ({
+    ...g,
+    items: g.items.filter((it) => !it.adminOnly || role === "ADMIN"),
+  })).filter((g) => g.items.length > 0);
   return (
     <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-      {NAV.map((group) => (
+      {groups.map((group) => (
         <div key={group.section}>
           <p className="mb-2 px-3 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
             {group.section}
@@ -145,7 +155,7 @@ export function AppShell({
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-surface lg:flex print:hidden">
         <Brand />
-        <NavLinks />
+        <NavLinks role={session.role} />
         <div className="hairline p-3 text-[0.65rem] text-muted-foreground">
           RONG ERP · v0.1 · Dhaka
         </div>
@@ -169,7 +179,7 @@ export function AppShell({
                 <X className="size-5" />
               </button>
             </div>
-            <NavLinks onNavigate={() => setMobileOpen(false)} />
+            <NavLinks role={session.role} onNavigate={() => setMobileOpen(false)} />
           </aside>
         </div>
       )}

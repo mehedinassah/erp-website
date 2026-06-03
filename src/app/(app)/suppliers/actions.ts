@@ -43,15 +43,14 @@ export async function updateSupplier(
   redirect("/suppliers");
 }
 
-/** Admin only. Blocks deletion when purchase-order history exists. */
+/** Admin only. Permanently deletes a supplier and its purchase orders. */
 export async function deleteSupplier(id: string) {
   await requireRole(["ADMIN"]);
-  const count = await prisma.purchaseOrder.count({ where: { supplierId: id } });
-  if (count > 0) {
-    // Keep referential history; don't hard-delete suppliers with POs.
-    redirect("/suppliers?blocked=1");
-  }
-  await prisma.supplier.delete({ where: { id } });
+  await prisma.$transaction(async (tx) => {
+    // Cascades purchase-order items
+    await tx.purchaseOrder.deleteMany({ where: { supplierId: id } });
+    await tx.supplier.delete({ where: { id } });
+  });
   revalidatePath("/suppliers");
   redirect("/suppliers?deleted=1");
 }

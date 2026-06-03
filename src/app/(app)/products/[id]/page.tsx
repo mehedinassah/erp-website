@@ -97,7 +97,7 @@ export default async function ProductDetailPage({
               <DeleteButton
                 entity="product"
                 name={product.name}
-                description="Products with sales or purchase history are archived instead of deleted, to preserve records."
+                description="Removes the product, all its variants and stock, and any order lines that referenced it."
                 action={async () => {
                   "use server";
                   await deleteProduct(product.id);
