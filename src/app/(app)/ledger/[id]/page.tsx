@@ -35,9 +35,10 @@ export default async function AccountProfile({
   params: Promise<{ id: string }>;
 }) {
   const [session, { id }] = await Promise.all([requireUser(), params]);
+  const { tenantId } = session;
 
-  const account = await prisma.ledgerAccount.findUnique({
-    where: { id },
+  const account = await prisma.ledgerAccount.findFirst({
+    where: { id, tenantId },
     include: {
       entries: { orderBy: [{ occurredAt: "asc" }, { createdAt: "asc" }] },
     },
@@ -60,7 +61,7 @@ export default async function AccountProfile({
   const accent = isPaona ? "text-success" : "text-warning";
   const backHref = isPaona ? "/ledger/paona" : "/ledger/dena";
 
-  const reminderMsg = `Assalamu Alaikum. Our records (RONG) show an outstanding balance of ${formatTaka(
+  const reminderMsg = `Assalamu Alaikum. Our records (PERICO) show an outstanding balance of ${formatTaka(
     remaining,
   )} on account ${account.code}${
     account.shopName ? ` (${account.shopName})` : ""
@@ -115,7 +116,7 @@ export default async function AccountProfile({
       {/* Print-only header */}
       <div className="mb-4 hidden print:block">
         <h1 className="font-display text-2xl font-semibold">
-          RONG — {isPaona ? "Receivable" : "Payable"} statement
+          PERICO — {isPaona ? "Receivable" : "Payable"} statement
         </h1>
         <p className="text-sm">
           {account.shopName} · {account.code} · Generated {formatDate(new Date())}

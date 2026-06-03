@@ -36,21 +36,22 @@ export const dynamic = "force-dynamic";
 
 const DAY = 86400000;
 
-async function getData() {
+async function getData(tenantId: string) {
   const since = new Date(Date.now() - 30 * DAY);
 
   const [productCount, variantCount, stockAgg, stockLevels, orders] =
     await Promise.all([
-      prisma.product.count({ where: { status: "ACTIVE" } }),
-      prisma.variant.count(),
-      prisma.stockLevel.aggregate({ _sum: { quantity: true } }),
+      prisma.product.count({ where: { status: "ACTIVE", tenantId } }),
+      prisma.variant.count({ where: { product: { tenantId } } }),
+      prisma.stockLevel.aggregate({ where: { variant: { product: { tenantId } } }, _sum: { quantity: true } }),
       prisma.stockLevel.findMany({
+        where: { variant: { product: { tenantId } } },
         include: {
           variant: { include: { product: { include: { category: true } } } },
         },
       }),
       prisma.salesOrder.findMany({
-        where: { status: "FULFILLED" },
+        where: { status: "FULFILLED", tenantId },
         orderBy: { orderDate: "desc" },
         include: {
           customer: true,
@@ -138,7 +139,9 @@ async function getData() {
 }
 
 export default async function DashboardPage() {
-  const [session, d] = await Promise.all([requireUser(), getData()]);
+  const session = await requireUser();
+  const { tenantId } = session;
+  const d = await getData(tenantId);
   const firstName = session.name.split(" ")[0];
   const showFinancials = canViewFinancials(session.role);
 
@@ -147,7 +150,7 @@ export default async function DashboardPage() {
       <PageHeader
         eyebrow="Overview"
         title={`Welcome back, ${firstName}`}
-        description="A live snapshot of inventory health and sales performance across RONG."
+        description="A live snapshot of inventory health and sales performance."
       >
         <Button asChild variant="outline">
           <Link href="/stock">

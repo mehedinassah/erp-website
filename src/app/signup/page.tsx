@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { LoginForm } from "./login-form";
+import { SignupForm } from "./signup-form";
 
 export const metadata: Metadata = {
-  title: "Sign in · PERICO ERP",
+  title: "Create account · PERICO ERP",
 };
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <main className="relative flex min-h-dvh">
       {/* Brand panel */}
@@ -29,8 +29,11 @@ export default function LoginPage() {
             Enterprise Resource Planning (ERP) system
           </p>
           <h1 className="font-display text-4xl font-semibold leading-tight">
-            Your one stop solution for Business.
+            Start your free trial.
           </h1>
+          <p className="mt-4 text-primary-foreground/70">
+            Full inventory management, sales, purchasing, and ledger — all in one place.
+          </p>
         </div>
 
         <div className="relative flex items-center gap-3 text-xs text-primary-foreground/50">
@@ -50,17 +53,18 @@ export default function LoginPage() {
           </div>
 
           <h2 className="font-display text-2xl font-semibold tracking-tight">
-            Welcome back
+            Create your account
           </h2>
           <p className="mb-7 mt-1 text-sm text-muted-foreground">
-            Sign in to your workspace.
+            Set up your business workspace in seconds.
           </p>
 
-          <LoginForm />
+          <SignupForm />
+
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <a href="/signup" className="font-medium text-foreground underline underline-offset-4 hover:text-accent">
-              Create account
+            Already have an account?{" "}
+            <a href="/login" className="font-medium text-foreground underline underline-offset-4 hover:text-accent">
+              Sign in
             </a>
           </p>
         </div>

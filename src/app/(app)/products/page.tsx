@@ -26,13 +26,15 @@ export default async function ProductsPage({
   searchParams: Promise<SP>;
 }) {
   const [session, sp] = await Promise.all([requireUser(), searchParams]);
+  const { tenantId } = session;
   const q = (sp.q ?? "").trim();
   const categoryId = sp.category ?? "";
   const page = Math.max(1, Number(sp.page ?? 1) || 1);
 
   const [categories, products] = await Promise.all([
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.category.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.product.findMany({
+      where: { tenantId },
       orderBy: { createdAt: "desc" },
       include: {
         category: true,
@@ -70,7 +72,7 @@ export default async function ProductsPage({
       <PageHeader
         eyebrow="Catalog"
         title="Products"
-        description="Every style in the RONG catalogue, with live variant and stock counts."
+        description="Every style in your catalogue, with live variant and stock counts."
       >
         {canManageProducts(session.role) && (
           <Button asChild variant="gold">

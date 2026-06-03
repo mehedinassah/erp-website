@@ -16,7 +16,9 @@ export const dynamic = "force-dynamic";
 
 export default async function SuppliersPage() {
   const session = await requireUser();
+  const { tenantId } = session;
   const suppliers = await prisma.supplier.findMany({
+    where: { tenantId },
     orderBy: { name: "asc" },
     include: { _count: { select: { purchaseOrders: true } } },
   });
@@ -27,7 +29,7 @@ export default async function SuppliersPage() {
       <PageHeader
         eyebrow="Purchasing"
         title="Suppliers"
-        description="Mills, weavers, and importers that supply the RONG catalogue."
+        description="Mills, weavers, and importers that supply your catalogue."
       >
         {manage && (
           <Button asChild variant="gold">

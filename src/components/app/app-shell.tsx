@@ -8,6 +8,7 @@ import {
   Menu, X, LogOut, ChevronsUpDown, Search,
   LayoutDashboard, Package, ScanLine, Moon, Sun,
 } from "lucide-react";
+import Image from "next/image";
 import { NAV } from "./nav-config";
 import { ThemeToggle } from "./theme-toggle";
 import { logoutAction } from "@/app/(app)/account-actions";
@@ -123,17 +124,9 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
 /* ── Brand ─────────────────────────────────────────────────────────── */
 function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 px-5 py-5">
-      <span className="grid size-9 place-items-center rounded-md bg-primary font-display text-lg font-bold text-primary-foreground">
-        R
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className="font-display text-lg font-semibold tracking-tight">
-          RONG
-        </span>
-        <span className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">
-          Inventory
-        </span>
+    <Link href="/" className="flex items-center px-5 py-4">
+      <span className="rounded-lg bg-white px-2 py-1">
+        <Image src="/perico.png" alt="PERICO" width={110} height={36} className="h-8 w-auto" priority />
       </span>
     </Link>
   );
@@ -232,7 +225,7 @@ export function AppShell({
         <Brand />
         <NavLinks role={session.role} />
         <div className="hairline p-3 text-[0.65rem] text-muted-foreground">
-          RONG ERP · v0.1 · Dhaka
+          PERICO ERP · v0.1
         </div>
       </aside>
 

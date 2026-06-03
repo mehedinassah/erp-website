@@ -18,9 +18,10 @@ export async function GET(
   const session = await getSession();
   if (!session) return new Response("Unauthorized", { status: 401 });
 
+  const tenantId = session.tenantId;
   const { id } = await params;
-  const account = await prisma.ledgerAccount.findUnique({
-    where: { id },
+  const account = await prisma.ledgerAccount.findFirst({
+    where: { id, tenantId },
     include: {
       entries: { orderBy: [{ occurredAt: "asc" }, { createdAt: "asc" }] },
     },
@@ -32,7 +33,7 @@ export async function GET(
   const rows = withRunningBalance(account.openingAmount, account.entries);
 
   const lines: string[] = [];
-  lines.push(`RONG — ${isPaona ? "Receivable (Paona)" : "Payable (Dena)"} statement`);
+  lines.push(`PERICO — ${isPaona ? "Receivable (Paona)" : "Payable (Dena)"} statement`);
   lines.push(`Account,${esc(account.code)}`);
   lines.push(`Business,${esc(account.shopName)}`);
   if (account.ownerName) lines.push(`Owner,${esc(account.ownerName)}`);

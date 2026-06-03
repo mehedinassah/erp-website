@@ -18,9 +18,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "RONG — Inventory & Stock Management",
+  title: "PERICO — ERP System",
   description:
-    "RONG inventory and stock management ERP — products, stock, purchasing and sales for a Dhaka clothing brand.",
+    "PERICO ERP — inventory, stock management, purchasing, sales and ledger for modern businesses.",
 };
 
 export default async function RootLayout({

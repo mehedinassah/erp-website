@@ -21,9 +21,10 @@ export default async function SalesOrderInvoicePage({
   params: Promise<{ id: string }>;
 }) {
   const [session, { id }] = await Promise.all([requireUser(), params]);
+  const { tenantId } = session;
 
-  const order = await prisma.salesOrder.findUnique({
-    where: { id },
+  const order = await prisma.salesOrder.findFirst({
+    where: { id, tenantId },
     include: {
       customer: true,
       warehouse: true,
@@ -69,7 +70,7 @@ export default async function SalesOrderInvoicePage({
               </span>
               <div>
                 <p className="font-display text-xl font-semibold leading-none">
-                  RONG
+                  PERICO
                 </p>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   Clothing · Dhaka
@@ -191,7 +192,7 @@ export default async function SalesOrderInvoicePage({
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Thank you for shopping with RONG · ৳ all amounts in BDT
+          Thank you for shopping with PERICO · ৳ all amounts in BDT
         </p>
       </Card>
     </div>
