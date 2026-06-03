@@ -9,7 +9,7 @@ import { createProduct } from "../actions";
 export const dynamic = "force-dynamic";
 
 export default async function NewProductPage() {
-  await requireRole(["ADMIN", "MANAGER"]);
+  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
   const categories = await prisma.category.findMany({
     orderBy: { name: "asc" },
     select: { id: true, name: true },

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Plus, Search, Shirt } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { requireUser, canManage } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
+import { canManageProducts } from "@/lib/permissions";
 import { formatBDT, formatNumber } from "@/lib/format";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PageHeader } from "@/components/app/page-header";
@@ -69,7 +70,7 @@ export default async function ProductsPage({
         title="Products"
         description="Every style in the RONG catalogue, with live variant and stock counts."
       >
-        {canManage(session.role) && (
+        {canManageProducts(session.role) && (
           <Button asChild variant="gold">
             <Link href="/products/new">
               <Plus className="size-4" /> New product
@@ -178,7 +179,7 @@ export default async function ProductsPage({
                   : "Create your first product to get started."
               }
             >
-              {canManage(session.role) && !q && !categoryId && (
+              {canManageProducts(session.role) && !q && !categoryId && (
                 <Button asChild variant="gold">
                   <Link href="/products/new">
                     <Plus className="size-4" /> New product

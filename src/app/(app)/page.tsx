@@ -163,7 +163,7 @@ export default async function DashboardPage() {
 
       {/* KPIs */}
       <div
-        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showFinancials ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}
+        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showFinancials ? "xl:grid-cols-4" : ""}`}
       >
         {showFinancials && (
           <StatCard
@@ -175,13 +175,15 @@ export default async function DashboardPage() {
             delay={0}
           />
         )}
-        <StatCard
-          label="Units in stock"
-          value={formatNumber(d.totalUnits)}
-          hint={`Retail value ${formatBDTCompact(d.inventoryRetail)}`}
-          icon={Boxes}
-          delay={60}
-        />
+        {showFinancials && (
+          <StatCard
+            label="Units in stock"
+            value={formatNumber(d.totalUnits)}
+            hint={`Retail value ${formatBDTCompact(d.inventoryRetail)}`}
+            icon={Boxes}
+            delay={60}
+          />
+        )}
         <StatCard
           label="Active products"
           value={formatNumber(d.productCount)}

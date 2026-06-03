@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Pencil, Archive, ArchiveRestore } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { requireUser, canManage } from "@/lib/auth";
-import { canDelete } from "@/lib/permissions";
+import { requireUser } from "@/lib/auth";
+import { canDelete, canManageProducts } from "@/lib/permissions";
 import { formatBDT, formatNumber } from "@/lib/format";
 import { PageHeader } from "@/components/app/page-header";
 import {
@@ -51,7 +51,7 @@ export default async function ProductDetailPage({
     product.sellPrice > 0
       ? Math.round(((product.sellPrice - product.costPrice) / product.sellPrice) * 100)
       : 0;
-  const manage = canManage(session.role);
+  const manage = canManageProducts(session.role);
   const allowDelete = canDelete(session.role);
 
   return (

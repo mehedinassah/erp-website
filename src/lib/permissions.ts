@@ -4,9 +4,13 @@
 /** Admin only — hard-delete any entry. */
 export const canDelete = (role: string) => role === "ADMIN";
 
-/** Create/edit catalogue, suppliers, and purchasing. Admin + Manager. */
+/** Create/edit suppliers and purchasing. Admin + Manager. */
 export const canManageCatalog = (role: string) =>
   role === "ADMIN" || role === "MANAGER";
+
+/** Create/edit products. All roles (Staff included). */
+export const canManageProducts = (role: string) =>
+  role === "ADMIN" || role === "MANAGER" || role === "STAFF";
 
 /** Day-to-day operations: sales, stock movements, customers. All roles. */
 export const canOperate = (role: string) =>

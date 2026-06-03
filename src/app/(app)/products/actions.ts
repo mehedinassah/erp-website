@@ -31,7 +31,7 @@ export async function createProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER"]);
+  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
 
   const parsed = parseBase(formData);
   if (!parsed.success) {
@@ -112,7 +112,7 @@ export async function updateProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole(["ADMIN", "MANAGER"]);
+  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
 
   const parsed = parseBase(formData);
   if (!parsed.success) {
@@ -146,7 +146,7 @@ export async function updateProduct(
 }
 
 export async function archiveProduct(id: string) {
-  await requireRole(["ADMIN", "MANAGER"]);
+  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
   const product = await prisma.product.findUnique({ where: { id } });
   await prisma.product.update({
     where: { id },

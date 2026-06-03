@@ -14,7 +14,7 @@ export default async function EditProductPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole(["ADMIN", "MANAGER"]);
+  await requireRole(["ADMIN", "MANAGER", "STAFF"]);
   const { id } = await params;
 
   const [product, categories] = await Promise.all([
