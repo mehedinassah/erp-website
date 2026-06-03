@@ -44,8 +44,8 @@ export default function LoginPage() {
         <div className="w-full max-w-sm animate-rise">
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">
-            <div className="relative h-12 w-44 overflow-hidden">
-              <Image src="/perico.png" alt="PERICO" fill className="object-cover [mix-blend-mode:multiply] dark:[mix-blend-mode:normal] dark:brightness-0 dark:invert" style={{ objectPosition: "center 50%" }} priority />
+            <div className="relative h-12 w-44 overflow-hidden rounded-md">
+              <Image src="/perico.png" alt="PERICO" fill className="object-cover dark:brightness-0 dark:invert" style={{ objectPosition: "center 50%" }} priority />
             </div>
           </div>
 

@@ -124,13 +124,14 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
 /* ── Brand ─────────────────────────────────────────────────────────── */
 function Brand() {
   return (
-    <Link href="/" className="block px-4 py-3">
-      <div className="relative h-12 w-full overflow-hidden">
+    <Link href="/" className="block px-4 py-2">
+      {/* Fixed width — w-full collapses to 0 in flex-row contexts (mobile drawer header) */}
+      <div className="relative h-12 w-48 overflow-hidden rounded-md">
         <Image
           src="/perico.png"
           alt="PERICO"
           fill
-          className="object-cover [mix-blend-mode:multiply] dark:[mix-blend-mode:normal] dark:brightness-0 dark:invert"
+          className="object-cover dark:brightness-0 dark:invert"
           style={{ objectPosition: "center 50%" }}
           priority
         />
