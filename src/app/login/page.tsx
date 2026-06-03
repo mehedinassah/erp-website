@@ -30,20 +30,16 @@ export default function LoginPage() {
 
         <div className="relative max-w-sm">
           <p className="mb-3 text-xs uppercase tracking-[0.25em] text-accent">
-            Inventory · Stock · Sales
+            Enterprise Resource Planning (ERP) system
           </p>
           <h1 className="font-display text-4xl font-semibold leading-tight">
-            Every thread, every size, every sale — accounted for.
+            Your one stop solution for Business.
           </h1>
-          <p className="mt-4 text-sm leading-relaxed text-primary-foreground/70">
-            The operations backbone for a modern Dhaka clothing label. Track
-            variants, manage purchasing, and fulfil orders with confidence.
-          </p>
         </div>
 
         <div className="relative flex items-center gap-3 text-xs text-primary-foreground/50">
           <span className="h-px w-8 bg-accent" />
-          Dhaka, Bangladesh · ৳ BDT
+          RONG · Dhaka, Bangladesh
         </div>
       </aside>
 
