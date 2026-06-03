@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
-import Script from "next/script";
+import { cookies } from "next/headers";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -23,28 +23,22 @@ export const metadata: Metadata = {
     "RONG inventory and stock management ERP — products, stock, purchasing and sales for a Dhaka clothing brand.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read theme from cookie server-side — no script tag needed, no React 19 warning
+  const theme = (await cookies()).get("rong-theme")?.value;
+  const dark = theme === "dark";
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${playfair.variable} ${inter.variable} h-full`}
+      className={`${dark ? "dark " : ""}${playfair.variable} ${inter.variable} h-full`}
     >
-      <body className="min-h-full">
-        {/* Apply saved theme before paint — prevents flash of wrong theme */}
-        <Script
-          id="theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('rong-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
-          }}
-        />
-        {children}
-      </body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

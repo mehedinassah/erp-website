@@ -14,9 +14,10 @@ export function ThemeToggle() {
     const root = document.documentElement;
     const next = !root.classList.contains("dark");
     root.classList.toggle("dark", next);
-    try {
-      localStorage.setItem("rong-theme", next ? "dark" : "light");
-    } catch {}
+    const val = next ? "dark" : "light";
+    // Cookie persists theme for SSR (no flash on reload); localStorage as fallback
+    document.cookie = `rong-theme=${val};path=/;max-age=31536000;samesite=lax`;
+    try { localStorage.setItem("rong-theme", val); } catch {}
     setDark(next);
   }
 
