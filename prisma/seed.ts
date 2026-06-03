@@ -107,14 +107,18 @@ async function main() {
   await prisma.warehouse.deleteMany();
   await prisma.user.deleteMany();
 
-  // Users
+  // Single administrator. Managers/Staff are created by the admin in-app
+  // (Settings → Users & access).
   const passwordHash = await bcrypt.hash("password123", 10);
-  const [admin] = await Promise.all([
-    prisma.user.create({ data: { email: "admin@rong.com.bd", name: "Ayesha Siddiqua", role: "ADMIN", passwordHash } }),
-    prisma.user.create({ data: { email: "manager@rong.com.bd", name: "Rezaul Karim", role: "MANAGER", passwordHash } }),
-    prisma.user.create({ data: { email: "staff@rong.com.bd", name: "Tahmid Hasan", role: "STAFF", passwordHash } }),
-  ]);
-  console.log("✓ Users (admin/manager/staff) — password: password123");
+  const admin = await prisma.user.create({
+    data: {
+      email: "mehedinas69@gmail.com",
+      name: "Administrator",
+      role: "ADMIN",
+      passwordHash,
+    },
+  });
+  console.log("✓ Admin — login: mehedinas69@gmail.com / password123");
 
   // Warehouses
   const flagship = await prisma.warehouse.create({
@@ -312,7 +316,7 @@ async function main() {
   console.log(`✓ ${LEDGER.length} Dena–Paona ledger accounts`);
 
   console.log("\n✅ Seed complete.\n");
-  console.log("   Login:  admin@rong.com.bd  /  password123");
+  console.log("   Login:  mehedinas69@gmail.com  /  password123");
 }
 
 main()

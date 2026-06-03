@@ -12,6 +12,7 @@ import {
   Wallet,
   ArrowDownLeft,
   ArrowUpRight,
+  UserCog,
   type LucideIcon,
 } from "lucide-react";
 
@@ -69,6 +70,7 @@ export const NAV: NavSection[] = [
   {
     section: "System",
     items: [
+      { href: "/settings/users", label: "Users & access", icon: UserCog, adminOnly: true },
       { href: "/settings", label: "Settings", icon: Settings, adminOnly: true },
     ],
   },

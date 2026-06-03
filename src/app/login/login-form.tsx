@@ -7,19 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label, Field } from "@/components/ui/label";
 
-const DEMO_ACCOUNTS = [
-  { label: "Admin", email: "admin@rong.com.bd" },
-  { label: "Manager", email: "manager@rong.com.bd" },
-  { label: "Staff", email: "staff@rong.com.bd" },
-];
-
 export function LoginForm() {
   const [state, action, pending] = useActionState<LoginState, FormData>(
     loginAction,
     {},
   );
-  const [email, setEmail] = useState("admin@rong.com.bd");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <form action={action} className="space-y-5">
@@ -82,27 +76,9 @@ export function LoginForm() {
         )}
       </Button>
 
-      <div className="hairline pt-4">
-        <p className="mb-2 text-center text-xs text-muted-foreground">
-          Demo accounts · password{" "}
-          <span className="font-medium text-foreground">password123</span>
-        </p>
-        <div className="flex justify-center gap-2">
-          {DEMO_ACCOUNTS.map((a) => (
-            <button
-              key={a.email}
-              type="button"
-              onClick={() => {
-                setEmail(a.email);
-                setPassword("password123");
-              }}
-              className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-accent hover:text-accent"
-            >
-              {a.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <p className="hairline pt-4 text-center text-xs text-muted-foreground">
+        Accounts are created by your administrator.
+      </p>
     </form>
   );
 }

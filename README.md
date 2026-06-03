@@ -60,15 +60,15 @@ npm run dev
 ```
 
 
-### Demo accounts (seeded)
+### First login (seeded admin)
 
-| Role    | Email                  | Password      |
-|---------|------------------------|---------------|
-| Admin   | `admin@rong.com.bd`    | `password123` |
-| Manager | `manager@rong.com.bd`  | `password123` |
-| Staff   | `staff@rong.com.bd`    | `password123` |
+| Role  | Email                    | Password      |
+|-------|--------------------------|---------------|
+| Admin | `mehedinas69@gmail.com`  | `password123` |
 
-The login screen has one-click buttons to fill each demo account.
+Change this password after first login. Managers and Staff are then created by
+the admin in-app at **Settings → Users & access** — assign any email + password
++ role, and that person logs in with exactly those credentials.
 
 ---
 
