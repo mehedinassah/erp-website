@@ -26,18 +26,18 @@ export default function SignupPage() {
           ))}
         </div>
         <div className="relative flex flex-1 flex-col justify-between p-14">
-          {/* Real PERICO logo — transparent bg */}
+          {/* White stacked logo on dark panel */}
           <div className="relative w-fit">
             <div
-              className="absolute -inset-6 opacity-50"
-              style={{ background: "radial-gradient(ellipse at 18% 50%, rgba(124,92,246,0.5) 0%, transparent 60%)", filter: "blur(22px)" }}
+              className="absolute -inset-8 opacity-40"
+              style={{ background: "radial-gradient(circle at 50% 40%, rgba(255,255,255,0.25) 0%, transparent 65%)", filter: "blur(24px)" }}
             />
             <Image
-              src="/perico-logo.png"
+              src="/perico-dark.png"
               alt="PERICO"
-              width={604}
-              height={153}
-              className="relative h-16 w-auto drop-shadow-[0_4px_20px_rgba(124,92,246,0.35)]"
+              width={800}
+              height={1058}
+              className="relative h-32 w-auto drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
               priority
             />
           </div>
@@ -69,7 +69,8 @@ export default function SignupPage() {
       <section className="flex flex-1 items-center justify-center bg-background px-6 py-12">
         <div className="w-full max-w-sm animate-rise">
           <div className="mb-8 lg:hidden">
-            <Image src="/perico-logo.png" alt="PERICO" width={604} height={153} className="h-11 w-auto" priority />
+            <Image src="/perico-light.png" alt="PERICO" width={800} height={1027} className="h-20 w-auto dark:hidden" priority />
+            <Image src="/perico-dark.png" alt="PERICO" width={800} height={1058} className="hidden h-20 w-auto dark:block" priority />
           </div>
           <h2 className="font-display text-2xl font-semibold tracking-tight">Create your account</h2>
           <p className="mb-7 mt-1 text-sm text-muted-foreground">Set up your business workspace in seconds.</p>

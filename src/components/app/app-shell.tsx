@@ -124,14 +124,22 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
 /* ── Brand ─────────────────────────────────────────────────────────── */
 function Brand() {
   return (
-    <Link href="/" className="block px-5 py-4">
-      {/* Transparent logo — works on both light and dark surfaces */}
+    <Link href="/" className="flex items-center justify-center px-5 py-5">
+      {/* Light mode: black logo. Dark mode: white logo. */}
       <Image
-        src="/perico-logo.png"
+        src="/perico-light.png"
         alt="PERICO"
-        width={604}
-        height={153}
-        className="h-9 w-auto"
+        width={800}
+        height={1027}
+        className="h-16 w-auto dark:hidden"
+        priority
+      />
+      <Image
+        src="/perico-dark.png"
+        alt="PERICO"
+        width={800}
+        height={1058}
+        className="hidden h-16 w-auto dark:block"
         priority
       />
     </Link>
