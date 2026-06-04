@@ -6,34 +6,22 @@ export const metadata: Metadata = {
   title: "Create account · PERICO ERP",
 };
 
-function PericoMark({ iconSize = 64, textSize = "3rem", sub = true }: {
+function PericoMark({ iconSize = 72, textSize = "3rem", sub = true }: {
   iconSize?: number; textSize?: string; sub?: boolean;
 }) {
-  const r = Math.round(iconSize * 0.23);
+  const bsPercent = Math.round((331 / iconSize) * 100);
+  const bx = Math.round((-63 / 72) * iconSize);
+  const by = Math.round((-130 / 72) * iconSize);
   return (
     <div className="flex items-center gap-4">
       <div className="relative shrink-0">
-        <div className="absolute -inset-3 rounded-2xl opacity-70"
-          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.55) 0%, transparent 70%)", filter: "blur(14px)" }} />
-        <svg width={iconSize} height={iconSize} viewBox="0 0 64 64" fill="none" className="relative">
-          <rect width="64" height="64" rx={r} fill="url(#pg2)" />
-          <line x1="13" y1="44" x2="24" y2="20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeOpacity="0.95" />
-          <line x1="24" y1="44" x2="35" y2="20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeOpacity="0.95" />
-          <line x1="35" y1="44" x2="46" y2="20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeOpacity="0.95" />
-          <circle cx="13" cy="44" r="3.5" fill="white" />
-          <circle cx="24" cy="20" r="3.5" fill="white" />
-          <circle cx="24" cy="44" r="3.5" fill="white" />
-          <circle cx="35" cy="20" r="3.5" fill="white" />
-          <circle cx="35" cy="44" r="3.5" fill="white" />
-          <circle cx="46" cy="20" r="3.5" fill="white" />
-          <defs>
-            <linearGradient id="pg2" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#8b5cf6" />
-              <stop offset="55%" stopColor="#6d28d9" />
-              <stop offset="100%" stopColor="#4338ca" />
-            </linearGradient>
-          </defs>
-        </svg>
+        <div className="absolute -inset-4 rounded-2xl opacity-60"
+          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.5) 0%, transparent 70%)", filter: "blur(16px)" }} />
+        <div
+          className="relative rounded-[22%] shadow-lg"
+          style={{ width: iconSize, height: iconSize, backgroundImage: "url(/perico.png)", backgroundSize: `${bsPercent}%`, backgroundPosition: `${bx}px ${by}px`, backgroundRepeat: "no-repeat" }}
+          role="img" aria-label="PERICO"
+        />
       </div>
       <div>
         <div className="font-display font-bold leading-none tracking-[0.06em]"
