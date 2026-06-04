@@ -124,21 +124,16 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
 /* ── Brand ─────────────────────────────────────────────────────────── */
 function Brand() {
   return (
-    <Link href="/" className="block px-4 py-3">
-      {/* Light mode: logo floats naturally on white sidebar surface.
-          Dark mode: wrap in white card so colored logo stays visible. */}
-      <span className="inline-block rounded-xl dark:bg-white dark:px-3 dark:py-1.5 dark:shadow-md">
-        <div className="relative h-11 w-44 overflow-hidden">
-          <Image
-            src="/perico.png"
-            alt="PERICO"
-            fill
-            className="object-cover"
-            style={{ objectPosition: "center 50%" }}
-            priority
-          />
-        </div>
-      </span>
+    <Link href="/" className="block px-5 py-4">
+      {/* Transparent logo — works on both light and dark surfaces */}
+      <Image
+        src="/perico-logo.png"
+        alt="PERICO"
+        width={201}
+        height={50}
+        className="h-9 w-auto"
+        priority
+      />
     </Link>
   );
 }

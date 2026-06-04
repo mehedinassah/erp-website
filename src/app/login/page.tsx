@@ -6,75 +6,6 @@ export const metadata: Metadata = {
   title: "Sign in · PERICO ERP",
 };
 
-/** Exact SVG recreation of the PERICO icon — transparent bg, no white bleed */
-function PericoMark({
-  iconSize = 72,
-  textSize = "3rem",
-  sub = true,
-}: {
-  iconSize?: number;
-  textSize?: string;
-  sub?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-5">
-      {/* Icon */}
-      <div className="relative shrink-0">
-        {/* Purple glow behind icon */}
-        <div
-          className="absolute -inset-4 rounded-3xl opacity-50"
-          style={{
-            background: "radial-gradient(circle, rgba(160,86,227,0.6) 0%, rgba(74,144,222,0.2) 55%, transparent 75%)",
-            filter: "blur(18px)",
-          }}
-        />
-        <svg
-          width={iconSize}
-          height={iconSize}
-          viewBox="0 0 64 64"
-          fill="none"
-          className="relative drop-shadow-lg"
-        >
-          {/* Rounded square: purple → blue gradient (matches original exactly) */}
-          <rect width="64" height="64" rx="15" fill="url(#pericoGrad)" />
-          {/* Three diagonal circuit lines — bottom-left to top-right */}
-          <line x1="11" y1="50" x2="26" y2="23" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeOpacity="0.95" />
-          <line x1="20" y1="52" x2="35" y2="25" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeOpacity="0.95" />
-          <line x1="29" y1="54" x2="44" y2="27" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeOpacity="0.95" />
-          {/* Dots at top endpoints only */}
-          <circle cx="26" cy="21" r="3.8" fill="white" />
-          <circle cx="35" cy="23" r="3.8" fill="white" />
-          <circle cx="44" cy="25" r="3.8" fill="white" />
-          <defs>
-            <linearGradient id="pericoGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#A056E3" />
-              <stop offset="100%" stopColor="#4A90DE" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      {/* Wordmark */}
-      <div>
-        <div
-          className="font-display font-bold leading-none tracking-[0.05em]"
-          style={{ fontSize: textSize, color: "#f0ece4" }}
-        >
-          PERICO
-        </div>
-        {sub && (
-          <div
-            className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.38em]"
-            style={{ color: "rgba(161,98,7,0.85)" }}
-          >
-            ERP Platform
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function LoginPage() {
   return (
     <main className="relative flex min-h-dvh">
@@ -139,8 +70,25 @@ export default function LoginPage() {
         {/* Content */}
         <div className="relative flex flex-1 flex-col justify-between p-14">
 
-          {/* Brand mark */}
-          <PericoMark iconSize={72} textSize="2.9rem" sub />
+          {/* Real PERICO logo — transparent bg, glows on the dark panel */}
+          <div className="relative w-fit">
+            <div
+              className="absolute -inset-6 opacity-50"
+              style={{
+                background:
+                  "radial-gradient(ellipse at 18% 50%, rgba(124,92,246,0.5) 0%, transparent 60%)",
+                filter: "blur(22px)",
+              }}
+            />
+            <Image
+              src="/perico-logo.png"
+              alt="PERICO"
+              width={201}
+              height={50}
+              className="relative h-16 w-auto drop-shadow-[0_4px_20px_rgba(124,92,246,0.35)]"
+              priority
+            />
+          </div>
 
           {/* Hero copy */}
           <div className="space-y-5">
@@ -196,16 +144,14 @@ export default function LoginPage() {
 
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden">
-            <div className="relative h-11 w-48 overflow-hidden rounded-lg">
-              <Image
-                src="/perico.png"
-                alt="PERICO"
-                fill
-                className="object-cover"
-                style={{ objectPosition: "center 50%" }}
-                priority
-              />
-            </div>
+            <Image
+              src="/perico-logo.png"
+              alt="PERICO"
+              width={201}
+              height={50}
+              className="h-11 w-auto"
+              priority
+            />
           </div>
 
           <h2 className="font-display text-2xl font-semibold tracking-tight">
