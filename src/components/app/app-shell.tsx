@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   Menu, X, LogOut, ChevronsUpDown, Search,
-  LayoutDashboard, Package, ScanLine, Moon, Sun,
+  LayoutDashboard, Package, ScanLine, Moon, Sun, Shield,
 } from "lucide-react";
 import Image from "next/image";
 import { NAV } from "./nav-config";
@@ -33,9 +33,11 @@ function isActive(pathname: string, href: string) {
 
 function NavLinks({
   role,
+  isSuperAdmin = false,
   onNavigate,
 }: {
   role: string;
+  isSuperAdmin?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
@@ -43,6 +45,13 @@ function NavLinks({
     ...g,
     items: g.items.filter((it) => !it.adminOnly || role === "ADMIN"),
   })).filter((g) => g.items.length > 0);
+  // Platform-owner-only section (controlled by SUPER_ADMIN_EMAILS, not roles).
+  if (isSuperAdmin) {
+    groups.push({
+      section: "Platform",
+      items: [{ href: "/admin", label: "All businesses", icon: Shield }],
+    });
+  }
   return (
     <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
       {groups.map((group) => (
@@ -225,9 +234,11 @@ function UserMenu({ session }: { session: Session }) {
 /* ── App shell ─────────────────────────────────────────────────────── */
 export function AppShell({
   session,
+  isSuperAdmin = false,
   children,
 }: {
   session: Session;
+  isSuperAdmin?: boolean;
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -237,7 +248,7 @@ export function AppShell({
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-surface lg:flex print:hidden">
         <Brand />
-        <NavLinks role={session.role} />
+        <NavLinks role={session.role} isSuperAdmin={isSuperAdmin} />
         <div className="hairline p-3 text-[0.65rem] text-muted-foreground">
           PERICO ERP · v0.1
         </div>
@@ -271,7 +282,7 @@ export function AppShell({
               <X className="size-5" />
             </button>
           </div>
-          <NavLinks role={session.role} onNavigate={() => setMobileOpen(false)} />
+          <NavLinks role={session.role} isSuperAdmin={isSuperAdmin} onNavigate={() => setMobileOpen(false)} />
           {/* Footer: theme toggle + logout */}
           <div className="hairline space-y-0.5 p-3">
             <DrawerThemeToggle />

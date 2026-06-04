@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/auth";
+import { isSuperAdmin } from "@/lib/superadmin";
 import { AppShell } from "@/components/app/app-shell";
 
 export default async function AppLayout({
@@ -14,6 +15,7 @@ export default async function AppLayout({
         email: session.email,
         role: session.role,
       }}
+      isSuperAdmin={isSuperAdmin(session.email)}
     >
       {children}
     </AppShell>
