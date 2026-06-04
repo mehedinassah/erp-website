@@ -9,6 +9,8 @@ import {
   Settings,
   ScanLine,
   Tags,
+  Tag,
+  Warehouse,
   Wallet,
   ArrowDownLeft,
   ArrowUpRight,
@@ -37,12 +39,16 @@ export const NAV: NavSection[] = [
     section: "Catalog",
     items: [
       { href: "/products", label: "Products", icon: Shirt },
+      { href: "/categories", label: "Categories", icon: Tag },
       { href: "/labels", label: "Barcode labels", icon: Tags },
     ],
   },
   {
     section: "Inventory",
-    items: [{ href: "/stock", label: "Stock control", icon: Boxes }],
+    items: [
+      { href: "/stock", label: "Stock control", icon: Boxes },
+      { href: "/warehouses", label: "Warehouses", icon: Warehouse },
+    ],
   },
   {
     section: "Purchasing",

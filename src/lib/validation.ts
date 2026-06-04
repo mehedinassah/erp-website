@@ -45,6 +45,29 @@ export const customerSchema = z.object({
   address: optionalText,
 });
 
+export const categorySchema = z.object({
+  name: z.string().trim().min(2, "Name is required"),
+});
+
+export const warehouseSchema = z.object({
+  name: z.string().trim().min(2, "Name is required"),
+  code: z
+    .string()
+    .trim()
+    .min(1, "Code is required")
+    .transform((s) => s.toUpperCase()),
+  address: optionalText,
+});
+
+/** URL-safe slug from a free-text name. */
+export function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export type ActionState = {
   ok?: boolean;
   error?: string;

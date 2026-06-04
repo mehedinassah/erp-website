@@ -66,6 +66,20 @@ export async function signupAction(
           passwordHash,
         },
       });
+
+      // Bootstrap so the new business can start immediately:
+      // a default warehouse + a starter category (both editable/removable later).
+      await tx.warehouse.create({
+        data: {
+          name: "Main Store",
+          code: "MAIN",
+          isDefault: true,
+          tenantId: tenant.id,
+        },
+      });
+      await tx.category.create({
+        data: { name: "General", slug: "general", tenantId: tenant.id },
+      });
     });
   } catch (e) {
     const msg = String(e);
