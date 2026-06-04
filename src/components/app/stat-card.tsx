@@ -26,13 +26,13 @@ export function StatCard({
 
   return (
     <Card
-      className="animate-rise p-5"
+      className="animate-rise p-4 sm:p-5"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm text-muted-foreground">{label}</p>
-          <p className="tabular mt-2 font-display text-2xl font-semibold tracking-tight">
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">{label}</p>
+          <p className="tabular mt-1.5 truncate font-display text-xl font-semibold tracking-tight sm:mt-2 sm:text-2xl">
             {value}
           </p>
           {hint && (

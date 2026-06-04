@@ -124,9 +124,9 @@ export async function LedgerListView({
             <THead>
               <TR className="hover:bg-transparent">
                 <TH>Account</TH>
-                <TH>Contact</TH>
-                <TH className="text-right">Billed</TH>
-                <TH className="text-right">Paid</TH>
+                <TH className="hidden md:table-cell">Contact</TH>
+                <TH className="hidden sm:table-cell text-right">Billed</TH>
+                <TH className="hidden sm:table-cell text-right">Paid</TH>
                 <TH className="text-right">Remaining</TH>
                 <TH className="text-right">Status</TH>
               </TR>
@@ -143,7 +143,7 @@ export async function LedgerListView({
                       {r.ownerName ? ` · ${r.ownerName}` : ""}
                     </p>
                   </TD>
-                  <TD className="text-sm text-muted-foreground">
+                  <TD className="hidden md:table-cell text-sm text-muted-foreground">
                     {r.phone ? (
                       <span className="flex items-center gap-1.5">
                         <Phone className="size-3" /> {r.phone}
@@ -155,8 +155,8 @@ export async function LedgerListView({
                       <p className="text-xs">{r.category}</p>
                     )}
                   </TD>
-                  <TD className="tabular text-right text-muted-foreground">{formatTaka(r.billed)}</TD>
-                  <TD className="tabular text-right text-muted-foreground">{formatTaka(r.paid)}</TD>
+                  <TD className="hidden sm:table-cell tabular text-right text-muted-foreground">{formatTaka(r.billed)}</TD>
+                  <TD className="hidden sm:table-cell tabular text-right text-muted-foreground">{formatTaka(r.paid)}</TD>
                   <TD className={`tabular text-right font-semibold ${r.remaining > 0 ? accent : "text-muted-foreground"}`}>
                     {formatTaka(Math.max(0, r.remaining))}
                   </TD>
@@ -191,17 +191,6 @@ export async function LedgerListView({
           </div>
         )}
       </Card>
-
-      {/* Mobile floating add button */}
-      {manage && (
-        <Link
-          href={`/ledger/new?type=${type}`}
-          aria-label={`New ${isPaona ? "Paona" : "Dena"}`}
-          className="fixed bottom-6 right-5 z-30 grid size-14 place-items-center rounded-full bg-accent text-accent-foreground shadow-lg transition-transform active:scale-95 lg:hidden"
-        >
-          <Plus className="size-6" />
-        </Link>
-      )}
     </div>
   );
 }
