@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { TenantRowActions } from "@/components/app/tenant-row-actions";
+import { CreateBusinessDialog } from "@/components/app/create-business-dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,9 @@ export default async function AdminPage() {
         eyebrow="Platform"
         title="All businesses"
         description="Every business using PERICO. Suspend, reactivate, or change plans here."
-      />
+      >
+        <CreateBusinessDialog />
+      </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Total businesses" value={String(total)} icon={Building2} delay={0} />
