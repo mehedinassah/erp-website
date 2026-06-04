@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Users, Pencil, Phone, Mail } from "lucide-react";
+import { Plus, Users, Pencil, Phone, Mail, Upload } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { canDelete } from "@/lib/permissions";
@@ -32,6 +32,11 @@ export default async function CustomersPage() {
         title="Customers"
         description="Wholesale buyers, boutiques, and retail customers."
       >
+        <Button asChild variant="outline">
+          <Link href="/customers/import">
+            <Upload className="size-4" /> Import
+          </Link>
+        </Button>
         <Button asChild variant="gold">
           <Link href="/customers/new">
             <Plus className="size-4" /> New customer

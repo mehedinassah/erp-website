@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Factory, Pencil, Phone, Mail } from "lucide-react";
+import { Plus, Factory, Pencil, Phone, Mail, Upload } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, canManage } from "@/lib/auth";
 import { canDelete } from "@/lib/permissions";
@@ -32,11 +32,18 @@ export default async function SuppliersPage() {
         description="Mills, weavers, and importers that supply your catalogue."
       >
         {manage && (
-          <Button asChild variant="gold">
-            <Link href="/suppliers/new">
-              <Plus className="size-4" /> New supplier
-            </Link>
-          </Button>
+          <>
+            <Button asChild variant="outline">
+              <Link href="/suppliers/import">
+                <Upload className="size-4" /> Import
+              </Link>
+            </Button>
+            <Button asChild variant="gold">
+              <Link href="/suppliers/new">
+                <Plus className="size-4" /> New supplier
+              </Link>
+            </Button>
+          </>
         )}
         {canDelete(session.role) && (
           <ClearButton
