@@ -6,13 +6,7 @@ export const metadata: Metadata = {
   title: "Sign in · PERICO ERP",
 };
 
-/**
- * PERICO brand mark — real PNG icon (CSS-cropped to the icon area only,
- * no white-background bleed) + HTML wordmark.
- * The icon area of perico.png sits at ~30% x, 50% y of the 500×500 image.
- * At backgroundSize 460% on a 72×72 container, the image renders at 331px,
- * and background-position -63px -130px centres the icon in the viewport.
- */
+/** Exact SVG recreation of the PERICO icon — transparent bg, no white bleed */
 function PericoMark({
   iconSize = 72,
   textSize = "3rem",
@@ -22,48 +16,56 @@ function PericoMark({
   textSize?: string;
   sub?: boolean;
 }) {
-  const bsPercent = Math.round((331 / iconSize) * 100);
-  const bx = Math.round((-63 / 72) * iconSize);
-  const by = Math.round((-130 / 72) * iconSize);
-
   return (
-    <div className="flex items-center gap-4">
-      {/* Real PNG icon — cropped to just the purple square */}
+    <div className="flex items-center gap-5">
+      {/* Icon */}
       <div className="relative shrink-0">
+        {/* Purple glow behind icon */}
         <div
-          className="absolute -inset-4 rounded-2xl opacity-60"
+          className="absolute -inset-4 rounded-3xl opacity-50"
           style={{
-            background: "radial-gradient(circle, rgba(124,58,237,0.5) 0%, transparent 70%)",
-            filter: "blur(16px)",
+            background: "radial-gradient(circle, rgba(160,86,227,0.6) 0%, rgba(74,144,222,0.2) 55%, transparent 75%)",
+            filter: "blur(18px)",
           }}
         />
-        <div
-          className="relative rounded-[22%] shadow-lg"
-          style={{
-            width: iconSize,
-            height: iconSize,
-            backgroundImage: "url(/perico.png)",
-            backgroundSize: `${bsPercent}%`,
-            backgroundPosition: `${bx}px ${by}px`,
-            backgroundRepeat: "no-repeat",
-          }}
-          role="img"
-          aria-label="PERICO"
-        />
+        <svg
+          width={iconSize}
+          height={iconSize}
+          viewBox="0 0 64 64"
+          fill="none"
+          className="relative drop-shadow-lg"
+        >
+          {/* Rounded square: purple → blue gradient (matches original exactly) */}
+          <rect width="64" height="64" rx="15" fill="url(#pericoGrad)" />
+          {/* Three diagonal circuit lines — bottom-left to top-right */}
+          <line x1="11" y1="50" x2="26" y2="23" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeOpacity="0.95" />
+          <line x1="20" y1="52" x2="35" y2="25" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeOpacity="0.95" />
+          <line x1="29" y1="54" x2="44" y2="27" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeOpacity="0.95" />
+          {/* Dots at top endpoints only */}
+          <circle cx="26" cy="21" r="3.8" fill="white" />
+          <circle cx="35" cy="23" r="3.8" fill="white" />
+          <circle cx="44" cy="25" r="3.8" fill="white" />
+          <defs>
+            <linearGradient id="pericoGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#A056E3" />
+              <stop offset="100%" stopColor="#4A90DE" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
       {/* Wordmark */}
       <div>
         <div
-          className="font-display font-bold leading-none tracking-[0.06em]"
+          className="font-display font-bold leading-none tracking-[0.05em]"
           style={{ fontSize: textSize, color: "#f0ece4" }}
         >
           PERICO
         </div>
         {sub && (
           <div
-            className="mt-1.5 text-[0.58rem] font-semibold uppercase tracking-[0.35em]"
-            style={{ color: "rgba(161,98,7,0.8)" }}
+            className="mt-2 text-[0.58rem] font-semibold uppercase tracking-[0.38em]"
+            style={{ color: "rgba(161,98,7,0.85)" }}
           >
             ERP Platform
           </div>
