@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  BarChart3,
   Shirt,
   Boxes,
   Truck,
@@ -35,10 +34,7 @@ export type NavSection = {
 export const NAV: NavSection[] = [
   {
     section: "Overview",
-    items: [
-      { href: "/", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/reports", label: "Reports", icon: BarChart3, managerOnly: true },
-    ],
+    items: [{ href: "/", label: "Dashboard", icon: LayoutDashboard }],
   },
   {
     section: "Catalog",
