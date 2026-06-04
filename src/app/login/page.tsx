@@ -83,8 +83,8 @@ export default function LoginPage() {
             <Image
               src="/perico-logo.png"
               alt="PERICO"
-              width={201}
-              height={50}
+              width={604}
+              height={153}
               className="relative h-16 w-auto drop-shadow-[0_4px_20px_rgba(124,92,246,0.35)]"
               priority
             />
@@ -147,8 +147,8 @@ export default function LoginPage() {
             <Image
               src="/perico-logo.png"
               alt="PERICO"
-              width={201}
-              height={50}
+              width={604}
+              height={153}
               className="h-11 w-auto"
               priority
             />

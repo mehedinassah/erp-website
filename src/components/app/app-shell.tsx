@@ -129,8 +129,8 @@ function Brand() {
       <Image
         src="/perico-logo.png"
         alt="PERICO"
-        width={201}
-        height={50}
+        width={604}
+        height={153}
         className="h-9 w-auto"
         priority
       />

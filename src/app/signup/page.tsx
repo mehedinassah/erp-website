@@ -35,8 +35,8 @@ export default function SignupPage() {
             <Image
               src="/perico-logo.png"
               alt="PERICO"
-              width={201}
-              height={50}
+              width={604}
+              height={153}
               className="relative h-16 w-auto drop-shadow-[0_4px_20px_rgba(124,92,246,0.35)]"
               priority
             />
@@ -69,7 +69,7 @@ export default function SignupPage() {
       <section className="flex flex-1 items-center justify-center bg-background px-6 py-12">
         <div className="w-full max-w-sm animate-rise">
           <div className="mb-8 lg:hidden">
-            <Image src="/perico-logo.png" alt="PERICO" width={201} height={50} className="h-11 w-auto" priority />
+            <Image src="/perico-logo.png" alt="PERICO" width={604} height={153} className="h-11 w-auto" priority />
           </div>
           <h2 className="font-display text-2xl font-semibold tracking-tight">Create your account</h2>
           <p className="mb-7 mt-1 text-sm text-muted-foreground">Set up your business workspace in seconds.</p>
