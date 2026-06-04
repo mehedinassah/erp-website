@@ -18,17 +18,23 @@ export async function loginAction(
     return { error: "Enter a valid email and password." };
   }
 
-  const user = await verifyCredentials(email, password);
-  if (!user) {
+  const result = await verifyCredentials(email, password);
+  if (!result.ok) {
+    if (result.reason === "suspended") {
+      return {
+        error:
+          "This account is suspended. Please contact support to reactivate your subscription.",
+      };
+    }
     return { error: "Invalid email or password." };
   }
 
   await createSession({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    tenantId: user.tenantId,
+    id: result.user.id,
+    email: result.user.email,
+    name: result.user.name,
+    role: result.user.role,
+    tenantId: result.user.tenantId,
   });
   redirect("/");
 }

@@ -62,7 +62,14 @@ export async function destroySession() {
   store.delete(SESSION_COOKIE);
 }
 
-export async function verifyCredentials(email: string, password: string) {
+type AuthResult =
+  | { ok: true; user: { id: string; email: string; name: string; role: string; tenantId: string } }
+  | { ok: false; reason: "invalid" | "suspended" };
+
+export async function verifyCredentials(
+  email: string,
+  password: string,
+): Promise<AuthResult> {
   const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase().trim() },
     select: {
@@ -73,11 +80,27 @@ export async function verifyCredentials(email: string, password: string) {
       active: true,
       passwordHash: true,
       tenantId: true,
+      tenant: { select: { status: true } },
     },
   });
-  if (!user || !user.active) return null;
-  const ok = await bcrypt.compare(password, user.passwordHash);
-  return ok ? user : null;
+  if (!user || !user.active) return { ok: false, reason: "invalid" };
+
+  const passwordOk = await bcrypt.compare(password, user.passwordHash);
+  if (!passwordOk) return { ok: false, reason: "invalid" };
+
+  // Suspension guard: a suspended business cannot sign in (pay-or-lose-access).
+  if (user.tenant.status === "SUSPENDED") return { ok: false, reason: "suspended" };
+
+  return {
+    ok: true,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      tenantId: user.tenantId,
+    },
+  };
 }
 
 /** True if the role can perform write/management actions. */
