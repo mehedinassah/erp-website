@@ -89,7 +89,15 @@ export async function verifyCredentials(
   if (!passwordOk) return { ok: false, reason: "invalid" };
 
   // Suspension guard: a suspended business cannot sign in (pay-or-lose-access).
-  if (user.tenant.status === "SUSPENDED") return { ok: false, reason: "suspended" };
+  // Exception: platform super-admins are never locked out — even if their own
+  // tenant is suspended — so the owner can always reach the /admin panel.
+  const superAdmins = (process.env.SUPER_ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isSuper = superAdmins.includes(user.email.toLowerCase());
+  if (user.tenant.status === "SUSPENDED" && !isSuper)
+    return { ok: false, reason: "suspended" };
 
   return {
     ok: true,
