@@ -329,16 +329,26 @@ export function AppShell({
             <Menu className="size-5" />
           </button>
 
-          <div className="relative hidden flex-1 items-center sm:flex">
+          {/* Desktop search — submits to /search */}
+          <form action="/search" className="relative hidden flex-1 items-center sm:flex">
             <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
             <input
               type="search"
-              placeholder="Search products, SKUs, orders…"
+              name="q"
+              placeholder="Search products, SKUs, orders, customers…"
               className="h-9 w-full max-w-md rounded-md border border-border bg-surface pl-9 pr-3 text-sm placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
-          </div>
+          </form>
 
           <div className="ml-auto flex items-center gap-2">
+            {/* Mobile search icon → /search page */}
+            <Link
+              href="/search"
+              aria-label="Search"
+              className="grid size-9 place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted sm:hidden"
+            >
+              <Search className="size-4" />
+            </Link>
             <ThemeToggle />
             <div className="h-6 w-px bg-border" />
             <UserMenu session={session} />
