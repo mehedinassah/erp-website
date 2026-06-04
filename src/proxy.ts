@@ -5,16 +5,20 @@ import { verifySession, SESSION_COOKIE } from "@/lib/session";
 export async function proxy(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await verifySession(token) : null;
-  const isLoginRoute = req.nextUrl.pathname.startsWith("/login");
+  const path = req.nextUrl.pathname;
+  // Public routes that don't require a session.
+  const isPublicRoute =
+    path.startsWith("/login") || path.startsWith("/signup");
 
-  if (!session && !isLoginRoute) {
+  if (!session && !isPublicRoute) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("from", req.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
-  if (session && isLoginRoute) {
+  // Already signed in → keep them out of login/signup.
+  if (session && isPublicRoute) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
     url.search = "";
