@@ -323,6 +323,12 @@ export function AppShell({
       {/* Main column */}
       <div className="lg:pl-64 print:pl-0">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background px-4 sm:bg-background/80 sm:backdrop-blur-md sm:px-6 print:hidden">
+          {/* Mobile logo (phone only — desktop has the sidebar, tablet has the hamburger) */}
+          <Link href="/" className="flex items-center sm:hidden" aria-label="PERICO home">
+            <Image src="/perico-light.png" alt="PERICO" width={604} height={153} className="h-7 w-auto dark:hidden" priority />
+            <Image src="/perico-dark.png" alt="PERICO" width={604} height={153} className="hidden h-7 w-auto dark:block" priority />
+          </Link>
+
           {/* Hamburger hidden on mobile — use the bottom nav "More" button instead */}
           <button
             type="button"

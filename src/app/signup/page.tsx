@@ -68,7 +68,7 @@ export default function SignupPage() {
 
       <section className="flex flex-1 items-center justify-center bg-background px-6 py-12">
         <div className="w-full max-w-sm animate-rise">
-          <div className="mb-8 lg:hidden">
+          <div className="mb-8 flex justify-center lg:hidden">
             <Image src="/perico-light.png" alt="PERICO" width={800} height={1027} className="h-20 w-auto dark:hidden" priority />
             <Image src="/perico-dark.png" alt="PERICO" width={800} height={1058} className="hidden h-20 w-auto dark:block" priority />
           </div>

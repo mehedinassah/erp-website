@@ -142,8 +142,8 @@ export default function LoginPage() {
       <section className="flex flex-1 items-center justify-center bg-background px-6 py-12">
         <div className="w-full max-w-sm animate-rise">
 
-          {/* Mobile logo — theme-aware */}
-          <div className="mb-8 lg:hidden">
+          {/* Mobile logo — centered at top, theme-aware */}
+          <div className="mb-8 flex justify-center lg:hidden">
             <Image
               src="/perico-light.png"
               alt="PERICO"
