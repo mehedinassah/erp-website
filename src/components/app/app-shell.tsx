@@ -43,7 +43,11 @@ function NavLinks({
   const pathname = usePathname();
   const groups = NAV.map((g) => ({
     ...g,
-    items: g.items.filter((it) => !it.adminOnly || role === "ADMIN"),
+    items: g.items.filter(
+      (it) =>
+        (!it.adminOnly || role === "ADMIN") &&
+        (!it.managerOnly || role === "ADMIN" || role === "MANAGER"),
+    ),
   })).filter((g) => g.items.length > 0);
   // Platform-owner-only section (controlled by SUPER_ADMIN_EMAILS, not roles).
   if (isSuperAdmin) {

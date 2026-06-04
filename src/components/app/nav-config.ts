@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  BarChart3,
   Shirt,
   Boxes,
   Truck,
@@ -23,6 +24,7 @@ export type NavItem = {
   label: string;
   icon: LucideIcon;
   adminOnly?: boolean;
+  managerOnly?: boolean; // visible to ADMIN + MANAGER only (hidden from STAFF)
 };
 
 export type NavSection = {
@@ -33,7 +35,10 @@ export type NavSection = {
 export const NAV: NavSection[] = [
   {
     section: "Overview",
-    items: [{ href: "/", label: "Dashboard", icon: LayoutDashboard }],
+    items: [
+      { href: "/", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/reports", label: "Reports", icon: BarChart3, managerOnly: true },
+    ],
   },
   {
     section: "Catalog",
