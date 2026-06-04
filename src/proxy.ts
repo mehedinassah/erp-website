@@ -8,7 +8,10 @@ export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   // Public routes that don't require a session.
   const isPublicRoute =
-    path.startsWith("/login") || path.startsWith("/signup");
+    path.startsWith("/login") ||
+    path.startsWith("/signup") ||
+    path.startsWith("/forgot-password") ||
+    path.startsWith("/reset-password");
 
   if (!session && !isPublicRoute) {
     const url = req.nextUrl.clone();
