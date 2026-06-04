@@ -9,6 +9,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // CLI tooling (db push / seed) uses the DIRECT connection (port 5432).
+    // The running app uses the pooled DATABASE_URL via the pg driver adapter.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });

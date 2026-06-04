@@ -1,9 +1,8 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-// Prisma 7 uses driver adapters. For local SQLite we use the better-sqlite3
-// adapter. To switch to PostgreSQL: swap this for `@prisma/adapter-pg`
-// (PrismaPg) and update schema.prisma's datasource provider.
+// Prisma 7 uses driver adapters. PostgreSQL via @prisma/adapter-pg (PrismaPg).
+// The connection string comes from DATABASE_URL (Supabase in production).
 //
 // Reuse a single client across hot-reloads in dev to avoid exhausting handles.
 const globalForPrisma = globalThis as unknown as {
@@ -11,8 +10,8 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createClient() {
-  const adapter = new PrismaBetterSqlite3({
-    url: process.env.DATABASE_URL ?? "file:./dev.db",
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
   });
   return new PrismaClient({
     adapter,

@@ -1,10 +1,7 @@
-// RONG Inventory — Prisma schema
+// PERICO ERP — Prisma schema
 // Stack note: Prisma 7 `prisma-client` generator (ESM). Import from "@/generated/prisma/client".
-// DB: SQLite for instant local dev. To switch to PostgreSQL:
-//   1. set datasource provider = "postgresql"
-//   2. set DATABASE_URL to your Postgres connection string
-//   3. run `npm run db:push && npm run db:seed`
-// SQLite has no native enums or Decimal precision guarantees, so:
+// DB: PostgreSQL (Supabase in production). Connection string lives in DATABASE_URL
+//     (see prisma.config.ts). Driver adapter: @prisma/adapter-pg (PrismaPg).
 //   - status/role fields are validated Strings (see src/lib/enums.ts)
 //   - all money is stored as Int (whole BDT taka)
 
@@ -14,7 +11,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // ----------------------------------------------------------------------------
