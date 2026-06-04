@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-});
-
-const inter = Inter({
+// Professional, modern type system:
+//   IBM Plex Sans  — body, data, tables, UI
+//   IBM Plex Serif — display headings (subtle editorial weight)
+const plexSans = IBM_Plex_Sans({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const plexSerif = IBM_Plex_Serif({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -36,7 +39,7 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${dark ? "dark " : ""}${playfair.variable} ${inter.variable} h-full`}
+      className={`${dark ? "dark " : ""}${plexSerif.variable} ${plexSans.variable} h-full`}
     >
       <body className="min-h-full">{children}</body>
     </html>
