@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   Menu, X, LogOut, ChevronsUpDown, Search,
-  LayoutDashboard, Package, ScanLine, Moon, Sun, Shield,
+  LayoutDashboard, Package, ScanLine, Moon, Sun, Shield, UserCircle,
 } from "lucide-react";
 import Image from "next/image";
 import { NAV } from "./nav-config";
@@ -216,6 +216,15 @@ function UserMenu({ session }: { session: Session }) {
             </p>
           </div>
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
+          <DropdownMenu.Item asChild>
+            <Link
+              href="/account"
+              className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted data-[highlighted]:bg-muted cursor-pointer"
+            >
+              <UserCircle className="size-4" />
+              Account settings
+            </Link>
+          </DropdownMenu.Item>
           <form action={logoutAction}>
             <button
               type="submit"
@@ -283,8 +292,16 @@ export function AppShell({
             </button>
           </div>
           <NavLinks role={session.role} isSuperAdmin={isSuperAdmin} onNavigate={() => setMobileOpen(false)} />
-          {/* Footer: theme toggle + logout */}
+          {/* Footer: account + theme toggle + logout */}
           <div className="hairline space-y-0.5 p-3">
+            <Link
+              href="/account"
+              onClick={() => setMobileOpen(false)}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <UserCircle className="size-4" />
+              Account settings
+            </Link>
             <DrawerThemeToggle />
             <form action={logoutAction}>
               <button
