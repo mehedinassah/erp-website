@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Search, Shirt } from "lucide-react";
+import { Plus, Search, Shirt, Upload } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { canManageProducts, canDelete } from "@/lib/permissions";
@@ -75,11 +75,18 @@ export default async function ProductsPage({
         description="Every style in your catalogue, with live variant and stock counts."
       >
         {canManageProducts(session.role) && (
-          <Button asChild variant="gold">
-            <Link href="/products/new">
-              <Plus className="size-4" /> New product
-            </Link>
-          </Button>
+          <>
+            <Button asChild variant="outline">
+              <Link href="/products/import">
+                <Upload className="size-4" /> Import
+              </Link>
+            </Button>
+            <Button asChild variant="gold">
+              <Link href="/products/new">
+                <Plus className="size-4" /> New product
+              </Link>
+            </Button>
+          </>
         )}
         {canDelete(session.role) && (
           <ClearButton
