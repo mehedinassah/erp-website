@@ -13,6 +13,11 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/forgot-password") ||
     path.startsWith("/reset-password");
 
+  // Entry routes a signed-in user should be bounced away from (login/signup).
+  // Password reset is intentionally NOT here — a logged-in user must still be
+  // able to open a reset link (e.g. on a shared device or to change accounts).
+  const isAuthEntryRoute = path.startsWith("/login") || path.startsWith("/signup");
+
   if (!session && !isPublicRoute) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
@@ -20,8 +25,8 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Already signed in → keep them out of login/signup.
-  if (session && isPublicRoute) {
+  // Already signed in → keep them out of login/signup only.
+  if (session && isAuthEntryRoute) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
     url.search = "";
