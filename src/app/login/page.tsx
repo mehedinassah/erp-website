@@ -18,9 +18,20 @@ export default function LoginPage() {
               "radial-gradient(circle at 20% 20%, #a16207 0, transparent 45%), radial-gradient(circle at 80% 70%, #a16207 0, transparent 40%)",
           }}
         />
+
+        {/* Premium logo — white card on dark panel */}
         <div className="relative">
-          <div className="relative h-14 w-52 overflow-hidden">
-            <Image src="/perico.png" alt="PERICO" fill className="object-cover brightness-0 invert" style={{ objectPosition: "center 50%" }} priority />
+          <div className="inline-block rounded-2xl bg-white px-6 py-4 shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
+            <div className="relative h-14 w-56 overflow-hidden">
+              <Image
+                src="/perico.png"
+                alt="PERICO"
+                fill
+                className="object-cover"
+                style={{ objectPosition: "center 50%" }}
+                priority
+              />
+            </div>
           </div>
         </div>
 
@@ -42,10 +53,18 @@ export default function LoginPage() {
       {/* Form panel */}
       <section className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm animate-rise">
-          {/* Mobile logo */}
+
+          {/* Mobile logo — shows directly on light background */}
           <div className="mb-8 lg:hidden">
-            <div className="relative h-12 w-44 overflow-hidden rounded-md">
-              <Image src="/perico.png" alt="PERICO" fill className="object-cover dark:brightness-0 dark:invert" style={{ objectPosition: "center 50%" }} priority />
+            <div className="relative h-12 w-48 overflow-hidden rounded-xl dark:bg-white dark:p-1">
+              <Image
+                src="/perico.png"
+                alt="PERICO"
+                fill
+                className="object-cover"
+                style={{ objectPosition: "center 50%" }}
+                priority
+              />
             </div>
           </div>
 

@@ -124,18 +124,21 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
 /* ── Brand ─────────────────────────────────────────────────────────── */
 function Brand() {
   return (
-    <Link href="/" className="block px-4 py-2">
-      {/* Fixed width — w-full collapses to 0 in flex-row contexts (mobile drawer header) */}
-      <div className="relative h-12 w-48 overflow-hidden rounded-md">
-        <Image
-          src="/perico.png"
-          alt="PERICO"
-          fill
-          className="object-cover dark:brightness-0 dark:invert"
-          style={{ objectPosition: "center 50%" }}
-          priority
-        />
-      </div>
+    <Link href="/" className="block px-4 py-3">
+      {/* Light mode: logo floats naturally on white sidebar surface.
+          Dark mode: wrap in white card so colored logo stays visible. */}
+      <span className="inline-block rounded-xl dark:bg-white dark:px-3 dark:py-1.5 dark:shadow-md">
+        <div className="relative h-11 w-44 overflow-hidden">
+          <Image
+            src="/perico.png"
+            alt="PERICO"
+            fill
+            className="object-cover"
+            style={{ objectPosition: "center 50%" }}
+            priority
+          />
+        </div>
+      </span>
     </Link>
   );
 }

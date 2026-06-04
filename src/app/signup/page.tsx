@@ -19,8 +19,10 @@ export default function SignupPage() {
           }}
         />
         <div className="relative">
-          <div className="relative h-14 w-52 overflow-hidden">
-            <Image src="/perico.png" alt="PERICO" fill className="object-cover brightness-0 invert" style={{ objectPosition: "center 50%" }} priority />
+          <div className="inline-block rounded-2xl bg-white px-6 py-4 shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
+            <div className="relative h-14 w-56 overflow-hidden">
+              <Image src="/perico.png" alt="PERICO" fill className="object-cover" style={{ objectPosition: "center 50%" }} priority />
+            </div>
           </div>
         </div>
 
