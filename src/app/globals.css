@@ -110,6 +110,8 @@
   --animate-rise: rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-scale-in: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-float-slow: float 11s ease-in-out infinite;
 }
 
 @keyframes fade-in {
@@ -127,6 +129,10 @@
 @keyframes shimmer {
   from { background-position: -200% 0; }
   to { background-position: 200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
 }
 
 @layer base {
