@@ -8,6 +8,7 @@ export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   // Public routes that don't require a session.
   const isPublicRoute =
+    path === "/" || // marketing landing page
     path.startsWith("/login") ||
     path.startsWith("/signup") ||
     path.startsWith("/forgot-password") ||
@@ -28,7 +29,7 @@ export async function proxy(req: NextRequest) {
   // Already signed in → keep them out of login/signup only.
   if (session && isAuthEntryRoute) {
     const url = req.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/dashboard";
     url.search = "";
     return NextResponse.redirect(url);
   }

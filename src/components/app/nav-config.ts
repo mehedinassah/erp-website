@@ -34,7 +34,7 @@ export type NavSection = {
 export const NAV: NavSection[] = [
   {
     section: "Overview",
-    items: [{ href: "/", label: "Dashboard", icon: LayoutDashboard }],
+    items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
   },
   {
     section: "Catalog",

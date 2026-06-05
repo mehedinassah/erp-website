@@ -179,7 +179,7 @@ export default async function DashboardPage({
           <div className="flex flex-wrap gap-1.5">
             {PERIODS.map((p) => (
               <Button key={p.key} asChild variant={p.key === periodKey ? "gold" : "outline"} size="sm">
-                <Link href={`/?period=${p.key}`}>{p.label}</Link>
+                <Link href={`/dashboard?period=${p.key}`}>{p.label}</Link>
               </Button>
             ))}
           </div>

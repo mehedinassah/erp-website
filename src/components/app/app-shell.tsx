@@ -97,7 +97,7 @@ function NavLinks({
 
 /* ── Mobile bottom nav ─────────────────────────────────────────────── */
 const BOTTOM_NAV = [
-  { href: "/", label: "Home", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/products", label: "Products", icon: Package },
   { href: "/pos", label: "POS", icon: ScanLine },
 ] as const;
@@ -137,7 +137,7 @@ function BottomNav({ onMenuClick }: { onMenuClick: () => void }) {
 /* ── Brand ─────────────────────────────────────────────────────────── */
 function Brand() {
   return (
-    <Link href="/" className="flex items-center justify-center px-5 py-5">
+    <Link href="/dashboard" className="flex items-center justify-center px-5 py-5">
       {/* Light mode: black logo. Dark mode: white logo. */}
       <Image
         src="/perico-light.png"
@@ -324,7 +324,7 @@ export function AppShell({
       <div className="lg:pl-64 print:pl-0">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background px-4 sm:bg-background/80 sm:backdrop-blur-md sm:px-6 print:hidden">
           {/* Mobile logo (phone only — desktop has the sidebar, tablet has the hamburger) */}
-          <Link href="/" className="flex items-center sm:hidden" aria-label="PERICO home">
+          <Link href="/dashboard" className="flex items-center sm:hidden" aria-label="PERICO home">
             <Image src="/perico-light.png" alt="PERICO" width={800} height={1027} className="h-12 w-auto dark:hidden" priority />
             <Image src="/perico-dark.png" alt="PERICO" width={800} height={1058} className="hidden h-12 w-auto dark:block" priority />
           </Link>

@@ -29,7 +29,7 @@ export async function requireRole(
   roles: Role[],
 ): Promise<SessionPayload> {
   const session = await requireUser();
-  if (!roles.includes(session.role as Role)) redirect("/?denied=1");
+  if (!roles.includes(session.role as Role)) redirect("/dashboard?denied=1");
   return session;
 }
 

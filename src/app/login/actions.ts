@@ -36,5 +36,5 @@ export async function loginAction(
     role: result.user.role,
     tenantId: result.user.tenantId,
   });
-  redirect("/");
+  redirect("/dashboard");
 }

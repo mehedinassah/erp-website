@@ -20,6 +20,6 @@ export function isSuperAdmin(email?: string | null): boolean {
 /** Gate a page/action to the platform owner. Redirects away if not. */
 export async function requireSuperAdmin() {
   const session = await getSession();
-  if (!session || !isSuperAdmin(session.email)) redirect("/");
+  if (!session || !isSuperAdmin(session.email)) redirect("/dashboard");
   return session;
 }
