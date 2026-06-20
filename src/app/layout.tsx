@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import { cookies } from "next/headers";
+import { SITE } from "@/lib/site";
 import "./globals.css";
 
 // Professional, modern type system:
@@ -21,9 +22,32 @@ const plexSerif = IBM_Plex_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "PERICO — ERP System",
+  metadataBase: new URL(SITE.url),
+  title: {
+    default: "PERICO — ERP System",
+    template: "%s · PERICO",
+  },
   description:
     "PERICO ERP — inventory, stock management, purchasing, sales and ledger for modern businesses.",
+  applicationName: SITE.name,
+  keywords: [
+    "ERP", "inventory management", "POS", "barcode POS", "Dena Paona",
+    "দেনা পাওনা", "Bangladesh ERP", "shop management", "wholesale software",
+  ],
+  icons: {
+    icon: "/perico.png",
+    shortcut: "/perico.png",
+    apple: "/perico.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE.name,
+    locale: "en_US",
+    url: SITE.url,
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default async function RootLayout({
