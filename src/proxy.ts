@@ -12,7 +12,10 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/login") ||
     path.startsWith("/signup") ||
     path.startsWith("/forgot-password") ||
-    path.startsWith("/reset-password");
+    path.startsWith("/reset-password") ||
+    path.startsWith("/contact") ||
+    path.startsWith("/privacy") ||
+    path.startsWith("/terms");
 
   // Entry routes a signed-in user should be bounced away from (login/signup).
   // Password reset is intentionally NOT here — a logged-in user must still be
