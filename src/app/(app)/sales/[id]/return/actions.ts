@@ -5,13 +5,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { nextDocNumber, withUniqueRetry } from "@/lib/sequence";
 import type { ActionState } from "@/lib/validation";
-
-async function nextReturnNumber(tenantId: string) {
-  const year = new Date().getFullYear();
-  const count = await prisma.salesReturn.count({ where: { tenantId } });
-  return `RET-${year}-${String(count + 1).padStart(4, "0")}`;
-}
 
 export async function createSalesReturn(
   _prev: ActionState,
@@ -50,10 +45,17 @@ export async function createSalesReturn(
   }
 
   const totalAmount = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
-  const returnNumber = await nextReturnNumber(tenantId);
+  let returnNumber = "";
 
   try {
-    await prisma.$transaction(async (tx) => {
+    await withUniqueRetry(() =>
+      prisma.$transaction(async (tx) => {
+      returnNumber = await nextDocNumber(tx, {
+        model: "salesReturn",
+        field: "returnNumber",
+        tenantId,
+        prefix: "RET",
+      });
       const ret = await tx.salesReturn.create({
         data: {
           returnNumber,
@@ -117,7 +119,8 @@ export async function createSalesReturn(
         where: { id: order.id },
         data: { amountPaid: newAmountPaid, paymentStatus },
       });
-    });
+      }),
+    );
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Could not process the return." };
   }

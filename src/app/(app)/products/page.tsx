@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Plus, Search, Shirt, Upload } from "lucide-react";
+import Image from "next/image";
+import { Plus, Search, Shirt, Upload, Download } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { canManageProducts, canDelete } from "@/lib/permissions";
@@ -74,6 +75,11 @@ export default async function ProductsPage({
         title="Products"
         description="Every style in your catalogue, with live variant and stock counts."
       >
+        <Button asChild variant="outline">
+          <a href="/products/export" download>
+            <Download className="size-4" /> Export
+          </a>
+        </Button>
         {canManageProducts(session.role) && (
           <>
             <Button asChild variant="outline">
@@ -147,13 +153,31 @@ export default async function ProductsPage({
                 return (
                   <TR key={p.id}>
                     <TD>
-                      <Link
-                        href={`/products/${p.id}`}
-                        className="font-medium gold-underline"
-                      >
-                        {p.name}
-                      </Link>
-                      <p className="text-xs text-muted-foreground">{p.sku}</p>
+                      <div className="flex items-center gap-3">
+                        {p.imageUrl ? (
+                          <Image
+                            src={p.imageUrl}
+                            alt={p.name}
+                            width={40}
+                            height={40}
+                            unoptimized
+                            className="size-10 shrink-0 rounded-md border border-border object-cover"
+                          />
+                        ) : (
+                          <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border bg-muted text-muted-foreground">
+                            <Shirt className="size-4" />
+                          </span>
+                        )}
+                        <div className="min-w-0">
+                          <Link
+                            href={`/products/${p.id}`}
+                            className="font-medium gold-underline"
+                          >
+                            {p.name}
+                          </Link>
+                          <p className="text-xs text-muted-foreground">{p.sku}</p>
+                        </div>
+                      </div>
                     </TD>
                     <TD className="hidden sm:table-cell text-muted-foreground">{p.category.name}</TD>
                     <TD className="hidden sm:table-cell">

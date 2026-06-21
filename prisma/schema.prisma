@@ -23,6 +23,19 @@ model Tenant {
   slug      String   @unique
   plan      String   @default("TRIAL")   // TRIAL | STARTER | BUSINESS | PRO
   status    String   @default("ACTIVE")  // ACTIVE | SUSPENDED
+
+  // Business profile — appears on invoices, quotations & purchase orders
+  legalName     String?
+  email         String?
+  phone         String?
+  address       String?
+  logoUrl       String?
+  invoicePrefix String   @default("SO")
+  taxRatePct    Int      @default(0)      // VAT/tax percentage applied to sales, e.g. 15
+  taxLabel      String   @default("VAT")  // label shown on invoices
+  currency      String   @default("BDT")
+  invoiceFooter String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

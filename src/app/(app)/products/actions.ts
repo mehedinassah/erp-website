@@ -136,6 +136,7 @@ export async function updateProduct(
         material: data.material,
         season: data.season,
         description: data.description,
+        imageUrl: data.imageUrl ?? null,
         costPrice: data.costPrice,
         sellPrice: data.sellPrice,
         status: data.status,

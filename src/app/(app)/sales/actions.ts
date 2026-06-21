@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { checkAndAlertLowStock } from "@/lib/low-stock-alert";
 import { logAudit } from "@/lib/audit";
+import { nextDocNumber, withUniqueRetry } from "@/lib/sequence";
+import { getTenantProfile, computeTax } from "@/lib/tenant";
 import type { ActionState } from "@/lib/validation";
 
 type LineItem = { variantId: string; quantity: number; price: number };
@@ -23,12 +25,6 @@ function parseItems(formData: FormData): LineItem[] {
   } catch {
     return [];
   }
-}
-
-async function nextOrderNumber(tenantId: string) {
-  const year = new Date().getFullYear();
-  const count = await prisma.salesOrder.count({ where: { tenantId } });
-  return `SO-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
 export async function createSalesOrder(
@@ -57,77 +53,91 @@ export async function createSalesOrder(
   const lines = [...merged.values()];
 
   const subtotal = lines.reduce((s, i) => s + i.quantity * i.price, 0);
-  const total = Math.max(0, subtotal - discount);
-  const orderNumber = await nextOrderNumber(tenantId);
+  const taxable = Math.max(0, subtotal - discount);
+
+  const tenant = await getTenantProfile(tenantId);
+  const tax = computeTax(taxable, tenant?.taxRatePct ?? 0);
+  const total = taxable + tax;
+  const prefix = tenant?.invoicePrefix || "SO";
 
   let id = "";
+  let orderNumber = "";
   try {
-    const order = await prisma.$transaction(async (tx) => {
-      // Stock availability check + deduction
-      for (const line of lines) {
-        const level = await tx.stockLevel.findUnique({
-          where: {
-            variantId_warehouseId: { variantId: line.variantId, warehouseId },
-          },
-          include: { variant: { include: { product: true } } },
-        });
-        const available = level?.quantity ?? 0;
-        if (available < line.quantity) {
-          const name = level
-            ? `${level.variant.product.name} (${level.variant.size}/${level.variant.color})`
-            : "an item";
-          throw new Error(
-            `Not enough stock for ${name}: ${available} available, ${line.quantity} requested.`,
-          );
+    const order = await withUniqueRetry(() =>
+      prisma.$transaction(async (tx) => {
+        // Stock availability check + deduction
+        for (const line of lines) {
+          const level = await tx.stockLevel.findUnique({
+            where: {
+              variantId_warehouseId: { variantId: line.variantId, warehouseId },
+            },
+            include: { variant: { include: { product: true } } },
+          });
+          const available = level?.quantity ?? 0;
+          if (available < line.quantity) {
+            const name = level
+              ? `${level.variant.product.name} (${level.variant.size}/${level.variant.color})`
+              : "an item";
+            throw new Error(
+              `Not enough stock for ${name}: ${available} available, ${line.quantity} requested.`,
+            );
+          }
         }
-      }
 
-      const so = await tx.salesOrder.create({
-        data: {
-          orderNumber,
-          status: "FULFILLED",
-          customerId,
-          warehouseId,
-          notes,
-          subtotal,
-          discount,
-          tax: 0,
-          total,
+        orderNumber = await nextDocNumber(tx, {
+          model: "salesOrder",
+          field: "orderNumber",
           tenantId,
-          userId: session.userId,
-          items: {
-            create: lines.map((i) => ({
-              variantId: i.variantId,
-              quantity: i.quantity,
-              unitPrice: i.price,
-            })),
-          },
-        },
-      });
-
-      for (const line of lines) {
-        await tx.stockLevel.update({
-          where: {
-            variantId_warehouseId: { variantId: line.variantId, warehouseId },
-          },
-          data: { quantity: { decrement: line.quantity } },
+          prefix,
         });
-        await tx.stockMovement.create({
+
+        const so = await tx.salesOrder.create({
           data: {
-            variantId: line.variantId,
+            orderNumber,
+            status: "FULFILLED",
+            customerId,
             warehouseId,
-            type: "SALE_OUT",
-            quantity: -line.quantity,
-            reason: `Sold on ${orderNumber}`,
-            referenceType: "SALES_ORDER",
-            referenceId: so.id,
+            notes,
+            subtotal,
+            discount,
+            tax,
+            total,
+            tenantId,
             userId: session.userId,
+            items: {
+              create: lines.map((i) => ({
+                variantId: i.variantId,
+                quantity: i.quantity,
+                unitPrice: i.price,
+              })),
+            },
           },
         });
-      }
 
-      return so;
-    });
+        for (const line of lines) {
+          await tx.stockLevel.update({
+            where: {
+              variantId_warehouseId: { variantId: line.variantId, warehouseId },
+            },
+            data: { quantity: { decrement: line.quantity } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              variantId: line.variantId,
+              warehouseId,
+              type: "SALE_OUT",
+              quantity: -line.quantity,
+              reason: `Sold on ${orderNumber}`,
+              referenceType: "SALES_ORDER",
+              referenceId: so.id,
+              userId: session.userId,
+            },
+          });
+        }
+
+        return so;
+      }),
+    );
     id = order.id;
   } catch (e) {
     return {

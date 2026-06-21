@@ -1,4 +1,5 @@
-import { TriangleAlert, CheckCircle2, Database } from "lucide-react";
+import Link from "next/link";
+import { TriangleAlert, CheckCircle2, Database, Building2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { formatNumber } from "@/lib/format";
@@ -10,6 +11,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { resetTransactions, resetAllData } from "./actions";
 
@@ -52,6 +54,22 @@ export default async function SettingsPage({
         title="Settings"
         description="Administrator tools for this workspace."
       />
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="size-4 text-muted-foreground" /> Business profile
+          </CardTitle>
+          <CardDescription>
+            Set your shop name, address, logo, tax rate and invoice details — these appear on invoices and quotations.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="outline">
+            <Link href="/settings/business">Edit business profile</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       {sp.reset === "tx" && (
         <div className="mb-4 flex items-center gap-2 rounded-md border border-success/25 bg-success/10 px-3 py-2.5 text-sm text-success animate-rise">
@@ -143,9 +161,7 @@ export default async function SettingsPage({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Signed in as {session.email} (Administrator). Tip: you can re-seed
-            the demo data anytime with{" "}
-            <code className="rounded bg-muted px-1">npm run db:seed</code>.
+            Signed in as {session.email} (Administrator).
           </p>
         </CardContent>
       </Card>

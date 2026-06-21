@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, RotateCcw } from "lucide-react";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { getTenantProfile } from "@/lib/tenant";
 import { canDelete, canManageLedger } from "@/lib/permissions";
 import { formatBDT, formatDate } from "@/lib/format";
 import {
@@ -43,6 +45,8 @@ export default async function SalesOrderInvoicePage({
   });
   if (!order) notFound();
 
+  const biz = await getTenantProfile(tenantId);
+
   return (
     <div className="mx-auto max-w-3xl">
       {/* Toolbar (hidden when printing) */}
@@ -81,16 +85,25 @@ export default async function SalesOrderInvoicePage({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="grid size-10 place-items-center rounded-md bg-primary font-display text-lg font-bold text-primary-foreground">
-                R
-              </span>
+              {biz?.logoUrl ? (
+                <Image src={biz.logoUrl} alt={biz.name} width={48} height={48} className="size-12 rounded-md object-contain" unoptimized />
+              ) : (
+                <span className="grid size-10 place-items-center rounded-md bg-primary font-display text-lg font-bold text-primary-foreground">
+                  {(biz?.name ?? "S").charAt(0).toUpperCase()}
+                </span>
+              )}
               <div>
                 <p className="font-display text-xl font-semibold leading-none">
-                  PERICO
+                  {biz?.name ?? "Your Business"}
                 </p>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  Clothing · Dhaka
-                </p>
+                {(biz?.address || biz?.phone) && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {[biz?.address, biz?.phone].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+                {biz?.email && (
+                  <p className="text-xs text-muted-foreground">{biz.email}</p>
+                )}
               </div>
             </div>
           </div>
@@ -194,6 +207,14 @@ export default async function SalesOrderInvoicePage({
                 </span>
               </div>
             )}
+            {order.tax > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  {biz?.taxLabel ?? "Tax"}{biz?.taxRatePct ? ` (${biz.taxRatePct}%)` : ""}
+                </span>
+                <span className="tabular">{formatBDT(order.tax)}</span>
+              </div>
+            )}
             <div className="hairline flex justify-between pt-2 text-base font-semibold">
               <span>Total</span>
               <span className="tabular text-accent">{formatBDT(order.total)}</span>
@@ -258,7 +279,7 @@ export default async function SalesOrderInvoicePage({
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Thank you for shopping with PERICO · ৳ all amounts in BDT
+          {biz?.invoiceFooter ?? `Thank you for shopping with ${biz?.name ?? "us"}`} · ৳ all amounts in BDT
         </p>
       </Card>
     </div>

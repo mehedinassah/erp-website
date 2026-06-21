@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { nextDocNumber, withUniqueRetry } from "@/lib/sequence";
 import type { ActionState } from "@/lib/validation";
 
 type LineItem = { variantId: string; quantity: number; price: number };
@@ -22,12 +23,6 @@ function parseItems(formData: FormData): LineItem[] {
   } catch {
     return [];
   }
-}
-
-async function nextQuoteNumber(tenantId: string) {
-  const year = new Date().getFullYear();
-  const count = await prisma.quotation.count({ where: { tenantId } });
-  return `QUO-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
 export async function createQuotation(
@@ -48,31 +43,41 @@ export async function createQuotation(
 
   const subtotal = items.reduce((s, i) => s + i.quantity * i.price, 0);
   const total = Math.max(0, subtotal - discount);
-  const quoteNumber = await nextQuoteNumber(tenantId);
 
   let id = "";
+  let quoteNumber = "";
   try {
-    const q = await prisma.quotation.create({
-      data: {
-        quoteNumber,
-        status: "DRAFT",
-        customerId,
-        notes,
-        discount,
-        subtotal,
-        total,
-        validUntil,
-        tenantId,
-        userId: session.userId,
-        items: {
-          create: items.map((i) => ({
-            variantId: i.variantId,
-            quantity: i.quantity,
-            unitPrice: i.price,
-          })),
-        },
-      },
-    });
+    const q = await withUniqueRetry(() =>
+      prisma.$transaction(async (tx) => {
+        quoteNumber = await nextDocNumber(tx, {
+          model: "quotation",
+          field: "quoteNumber",
+          tenantId,
+          prefix: "QUO",
+        });
+        return tx.quotation.create({
+          data: {
+            quoteNumber,
+            status: "DRAFT",
+            customerId,
+            notes,
+            discount,
+            subtotal,
+            total,
+            validUntil,
+            tenantId,
+            userId: session.userId,
+            items: {
+              create: items.map((i) => ({
+                variantId: i.variantId,
+                quantity: i.quantity,
+                unitPrice: i.price,
+              })),
+            },
+          },
+        });
+      }),
+    );
     id = q.id;
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Could not create the quotation." };

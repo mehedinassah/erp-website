@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Receipt } from "lucide-react";
+import { Plus, Receipt, Download } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { canDelete } from "@/lib/permissions";
@@ -36,6 +36,11 @@ export default async function SalesPage() {
         title="Sales orders"
         description="Fulfilled sales automatically deduct stock and generate an invoice."
       >
+        <Button asChild variant="outline">
+          <a href="/sales/export" download>
+            <Download className="size-4" /> Export
+          </a>
+        </Button>
         <Button asChild variant="gold">
           <Link href="/sales/new">
             <Plus className="size-4" /> New sale

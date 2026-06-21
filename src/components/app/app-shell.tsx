@@ -14,6 +14,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { logoutAction } from "@/app/(app)/account-actions";
 import { ROLE_LABEL, type Role } from "@/lib/enums";
 import { cn } from "@/lib/utils";
+import { ToastProvider } from "@/components/ui/toast";
 
 type Session = { name: string; email: string; role: string };
 
@@ -257,6 +258,7 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
+    <ToastProvider>
     <div className="grain min-h-dvh">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-surface lg:flex print:hidden">
@@ -370,5 +372,6 @@ export function AppShell({
 
       <BottomNav onMenuClick={() => setMobileOpen(true)} />
     </div>
+    </ToastProvider>
   );
 }

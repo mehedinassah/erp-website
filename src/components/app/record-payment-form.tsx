@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
-import { Loader2, AlertCircle, CheckCircle2, Banknote } from "lucide-react";
+import { useActionState, useEffect } from "react";
+import { Loader2, AlertCircle, Banknote } from "lucide-react";
 import { recordPayment } from "@/app/(app)/sales/[id]/payment-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label, Field } from "@/components/ui/label";
+import { useToast } from "@/components/ui/toast";
 import type { ActionState } from "@/lib/validation";
 
 export function RecordPaymentForm({
@@ -16,6 +17,12 @@ export function RecordPaymentForm({
   outstanding: number;
 }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(recordPayment, {});
+  const toast = useToast();
+
+  useEffect(() => {
+    if (state.ok) toast({ title: "Payment recorded", variant: "success" });
+    else if (state.error) toast({ title: state.error, variant: "error" });
+  }, [state, toast]);
 
   if (outstanding <= 0) return null;
 
@@ -25,11 +32,6 @@ export function RecordPaymentForm({
       {state.error && (
         <div role="alert" className="flex items-center gap-2 rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
           <AlertCircle className="size-4 shrink-0" /> {state.error}
-        </div>
-      )}
-      {state.ok && (
-        <div role="status" className="flex items-center gap-2 rounded-md border border-success/25 bg-success/10 px-3 py-2.5 text-sm text-success">
-          <CheckCircle2 className="size-4 shrink-0" /> Payment recorded.
         </div>
       )}
       <div className="flex gap-2">

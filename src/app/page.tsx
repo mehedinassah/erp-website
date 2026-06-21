@@ -297,17 +297,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonial */}
+      {/* Mission */}
       <section className="border-y border-border bg-surface/50 py-20">
         <div className="mx-auto max-w-3xl px-5 text-center">
           <Quote className="mx-auto size-8 text-accent" />
           <p className="mt-5 font-display text-xl font-medium leading-relaxed sm:text-2xl">
-            “Before PERICO we tracked stock in a notebook and দেনা-পাওনা in our heads. Now everything is in one place and we finally know our real profit.”
+            Most shops in Bangladesh still run on notebooks and memory. PERICO replaces the খাতা with one simple app — so you always know your stock, your দেনা-পাওনা, and your real profit.
           </p>
-          <div className="mt-6 flex items-center justify-center gap-1 text-accent">
-            {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="size-4 fill-current" />)}
-          </div>
-          <p className="mt-3 text-sm text-muted-foreground">A growing retail business in Dhaka</p>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Built in Dhaka 🇧🇩 — for local shops, wholesalers, and growing businesses.
+          </p>
         </div>
       </section>
 

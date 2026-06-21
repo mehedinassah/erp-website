@@ -51,6 +51,7 @@ export default async function EditProductPage({
           material: product.material,
           season: product.season,
           description: product.description,
+          imageUrl: product.imageUrl,
           costPrice: product.costPrice,
           sellPrice: product.sellPrice,
           status: product.status,

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { getTenantProfile } from "@/lib/tenant";
 import { formatBDT, formatDate } from "@/lib/format";
 import { QUOTE_STATUS_LABEL, type QuoteStatus } from "@/lib/enums";
 import { Card } from "@/components/ui/card";
@@ -34,6 +35,8 @@ export default async function QuoteDetailPage({
   });
   if (!quote) notFound();
 
+  const biz = await getTenantProfile(tenantId);
+
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-4 flex items-center justify-between print:hidden">
@@ -54,8 +57,12 @@ export default async function QuoteDetailPage({
       <Card className="animate-rise overflow-hidden p-8 sm:p-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="font-display text-xl font-semibold">PERICO</p>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Quotation</p>
+            <p className="font-display text-xl font-semibold">{biz?.name ?? "Your Business"}</p>
+            {(biz?.address || biz?.phone) && (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {[biz?.address, biz?.phone].filter(Boolean).join(" · ")}
+              </p>
+            )}
           </div>
           <div className="text-right">
             <p className="font-display text-2xl font-semibold">Quotation</p>
@@ -141,7 +148,7 @@ export default async function QuoteDetailPage({
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          PERICO ERP · This quotation is valid until {quote.validUntil ? formatDate(quote.validUntil) : "further notice"} · ৳ all amounts in BDT
+          {biz?.name ?? "Your Business"} · This quotation is valid until {quote.validUntil ? formatDate(quote.validUntil) : "further notice"} · ৳ all amounts in BDT
         </p>
       </Card>
     </div>
