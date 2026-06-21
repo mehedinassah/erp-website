@@ -50,7 +50,7 @@ const PERIODS = [
 async function getData(tenantId: string, days: number) {
   const since = days > 0 ? new Date(Date.now() - days * DAY) : new Date(0);
 
-  const [productCount, variantCount, stockLevels, orders] = await Promise.all([
+  const [productCount, variantCount, stockLevels, orders, returns] = await Promise.all([
     prisma.product.count({ where: { tenantId, status: "ACTIVE" } }),
     prisma.variant.count({ where: { product: { tenantId } } }),
     prisma.stockLevel.findMany({
@@ -62,6 +62,12 @@ async function getData(tenantId: string, days: number) {
       orderBy: { orderDate: "asc" },
       include: {
         customer: true,
+        items: { include: { variant: { include: { product: { include: { category: true } } } } } },
+      },
+    }),
+    prisma.salesReturn.findMany({
+      where: { tenantId, createdAt: { gte: since } },
+      include: {
         items: { include: { variant: { include: { product: { include: { category: true } } } } } },
       },
     }),
@@ -122,6 +128,30 @@ async function getData(tenantId: string, days: number) {
     }
   }
 
+  // Subtract sales returns (net revenue / profit / units, counted by return date)
+  let returnsTotal = 0;
+  for (const r of returns) {
+    const key = r.createdAt.toISOString().slice(0, 10);
+    for (const it of r.items) {
+      const cost = it.variant.product.costPrice * it.quantity;
+      const rev = it.unitPrice * it.quantity;
+      revenue -= rev;
+      cogs -= cost;
+      units -= it.quantity;
+      returnsTotal += rev;
+      if (trendMap.has(key)) trendMap.set(key, (trendMap.get(key) ?? 0) - rev);
+      const pid = it.variant.product.id;
+      const prev = productAgg.get(pid);
+      if (prev) {
+        prev.units -= it.quantity;
+        prev.revenue -= rev;
+        prev.profit -= rev - cost;
+      }
+      const cat = it.variant.product.category.name;
+      catAgg.set(cat, (catAgg.get(cat) ?? 0) - it.quantity);
+    }
+  }
+
   const grossProfit = revenue - cogs;
   const margin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
   const orderCount = orders.length;
@@ -130,9 +160,12 @@ async function getData(tenantId: string, days: number) {
   const trend = [...trendMap.entries()].map(([date, total]) => ({
     date,
     label: formatDate(date).replace(/ \d{4}$/, ""),
-    total,
+    total: Math.max(0, total),
   }));
-  const categoryData = [...catAgg.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  const categoryData = [...catAgg.entries()]
+    .map(([name, value]) => ({ name, value: Math.max(0, value) }))
+    .filter((c) => c.value > 0)
+    .sort((a, b) => b.value - a.value);
   const bestSellers = [...productAgg.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 6);
 
   return {
@@ -149,6 +182,7 @@ async function getData(tenantId: string, days: number) {
     orderCount,
     aov,
     units,
+    returnsTotal,
     trend,
     categoryData,
     bestSellers,
@@ -190,7 +224,7 @@ export default async function DashboardPage({
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {fin ? (
           <>
-            <StatCard label="Revenue" value={formatBDT(d.revenue)} hint={`${d.orderCount} orders · ${period.label.toLowerCase()}`} icon={Banknote} tone="gold" delay={0} />
+            <StatCard label="Revenue" value={formatBDT(d.revenue)} hint={d.returnsTotal > 0 ? `Net · −${formatBDT(d.returnsTotal)} returns` : `${d.orderCount} orders · ${period.label.toLowerCase()}`} icon={Banknote} tone="gold" delay={0} />
             <StatCard label="Gross profit" value={formatBDT(d.grossProfit)} hint={`Margin ${d.margin.toFixed(1)}%`} icon={TrendingUp} tone="success" delay={60} />
             <StatCard label="Avg order value" value={formatBDT(d.aov)} hint={`${formatNumber(d.units)} units sold`} icon={ShoppingBag} delay={120} />
             <StatCard label="Low-stock alerts" value={formatNumber(d.lowStockCount)} hint="At or below threshold" icon={TriangleAlert} tone={d.lowStockCount > 0 ? "danger" : "success"} delay={180} />
