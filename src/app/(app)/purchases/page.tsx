@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Truck } from "lucide-react";
+import { Plus, Truck, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, canManage } from "@/lib/auth";
 import { canDelete } from "@/lib/permissions";
@@ -37,11 +37,18 @@ export default async function PurchasesPage() {
         description="Raise orders to suppliers and receive stock into your warehouses."
       >
         {canManage(session.role) && (
-          <Button asChild variant="gold">
-            <Link href="/purchases/new">
-              <Plus className="size-4" /> New purchase order
-            </Link>
-          </Button>
+          <>
+            <Button asChild variant="outline">
+              <Link href="/purchases/reorder">
+                <Sparkles className="size-4" /> Reorder suggestions
+              </Link>
+            </Button>
+            <Button asChild variant="gold">
+              <Link href="/purchases/new">
+                <Plus className="size-4" /> New purchase order
+              </Link>
+            </Button>
+          </>
         )}
         {canDelete(session.role) && (
           <ClearButton

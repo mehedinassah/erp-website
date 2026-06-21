@@ -25,6 +25,7 @@ export const productSchema = z.object({
   costPrice: z.coerce.number().int().min(0),
   sellPrice: z.coerce.number().int().min(0),
   targetStock: z.coerce.number().int().min(0).default(0),
+  trackExpiry: z.boolean().default(false),
   status: oneOf(PRODUCT_STATUSES).default("ACTIVE"),
 });
 

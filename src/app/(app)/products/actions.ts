@@ -27,6 +27,7 @@ function parseBase(formData: FormData) {
     costPrice: formData.get("costPrice"),
     sellPrice: formData.get("sellPrice"),
     targetStock: formData.get("targetStock") ?? 0,
+    trackExpiry: formData.get("trackExpiry") === "on",
     status: formData.get("status") ?? "ACTIVE",
   });
 }
@@ -79,6 +80,7 @@ export async function createProduct(
           costPrice: data.costPrice,
           sellPrice: data.sellPrice,
           targetStock: data.targetStock,
+          trackExpiry: data.trackExpiry,
           status: data.status,
           tenantId,
         },
@@ -149,6 +151,7 @@ export async function updateProduct(
         costPrice: data.costPrice,
         sellPrice: data.sellPrice,
         targetStock: data.targetStock,
+        trackExpiry: data.trackExpiry,
         status: data.status,
       },
     });

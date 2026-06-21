@@ -60,6 +60,7 @@ export default async function EditProductPage({
           costPrice: product.costPrice,
           sellPrice: product.sellPrice,
           targetStock: product.targetStock,
+          trackExpiry: product.trackExpiry,
           status: product.status,
         }}
       />

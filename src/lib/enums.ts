@@ -75,6 +75,22 @@ export type EntryKind = (typeof ENTRY_KINDS)[number];
 export const PAYMENT_METHODS = ["CASH", "BANK", "MOBILE", "OTHER"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
+// ---- Expense categories ----
+export const EXPENSE_CATEGORIES = [
+  "RENT", "SALARY", "UTILITIES", "TRANSPORT", "MARKETING", "SUPPLIES", "OTHER",
+] as const;
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+
+export const EXPENSE_CATEGORY_LABEL: Record<ExpenseCategory, string> = {
+  RENT: "Rent",
+  SALARY: "Salary / wages",
+  UTILITIES: "Utilities (electric, gas, water)",
+  TRANSPORT: "Transport / delivery",
+  MARKETING: "Marketing / ads",
+  SUPPLIES: "Supplies",
+  OTHER: "Other",
+};
+
 export const METHOD_LABEL: Record<PaymentMethod, string> = {
   CASH: "Cash",
   BANK: "Bank",

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { nextDocNumber, withUniqueRetry } from "@/lib/sequence";
 import type { ActionState } from "@/lib/validation";
 
 type LineItem = { variantId: string; quantity: number; price: number };
@@ -21,12 +22,6 @@ function parseItems(formData: FormData): LineItem[] {
   } catch {
     return [];
   }
-}
-
-async function nextPoNumber(tenantId: string) {
-  const year = new Date().getFullYear();
-  const count = await prisma.purchaseOrder.count({ where: { tenantId } });
-  return `PO-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
 export async function createPurchaseOrder(
@@ -47,31 +42,40 @@ export async function createPurchaseOrder(
   if (items.length === 0) return { error: "Add at least one line item." };
 
   const total = items.reduce((s, i) => s + i.quantity * i.price, 0);
-  const poNumber = await nextPoNumber(tenantId);
 
   let id = "";
   try {
-    const po = await prisma.purchaseOrder.create({
-      data: {
-        poNumber,
-        status: "ORDERED",
-        supplierId,
-        warehouseId,
-        notes,
-        expectedDate: expected ? new Date(expected) : null,
-        totalAmount: total,
-        tenantId,
-        userId: session.userId,
-        items: {
-          create: items.map((i) => ({
-            variantId: i.variantId,
-            quantity: i.quantity,
-            unitCost: i.price,
-            receivedQty: 0,
-          })),
-        },
-      },
-    });
+    const po = await withUniqueRetry(() =>
+      prisma.$transaction(async (tx) => {
+        const poNumber = await nextDocNumber(tx, {
+          model: "purchaseOrder",
+          field: "poNumber",
+          tenantId,
+          prefix: "PO",
+        });
+        return tx.purchaseOrder.create({
+          data: {
+            poNumber,
+            status: "ORDERED",
+            supplierId,
+            warehouseId,
+            notes,
+            expectedDate: expected ? new Date(expected) : null,
+            totalAmount: total,
+            tenantId,
+            userId: session.userId,
+            items: {
+              create: items.map((i) => ({
+                variantId: i.variantId,
+                quantity: i.quantity,
+                unitCost: i.price,
+                receivedQty: 0,
+              })),
+            },
+          },
+        });
+      }),
+    );
     id = po.id;
   } catch {
     return { error: "Could not create the purchase order." };

@@ -52,6 +52,8 @@ model Tenant {
   quotations     Quotation[]
   salesReturns   SalesReturn[]
   auditLogs      AuditLog[]
+  stockBatches   StockBatch[]
+  expenses       Expense[]
 }
 
 // ----------------------------------------------------------------------------
@@ -83,6 +85,7 @@ model User {
   quotations     Quotation[]
   salesReturns   SalesReturn[]
   auditLogs      AuditLog[]
+  expenses       Expense[]
 
   @@index([tenantId])
 }
@@ -160,9 +163,34 @@ model Variant {
   soItems         SOItem[]
   quoteItems      QuoteItem[]
   salesReturnItems SalesReturnItem[]
+  batches         StockBatch[]
 
   @@unique([productId, size, color])
   @@index([productId])
+}
+
+// ----------------------------------------------------------------------------
+// Batch + expiry tracking (for trackExpiry products: pharmacy, grocery, etc.)
+// ----------------------------------------------------------------------------
+model StockBatch {
+  id          String    @id @default(cuid())
+  batchNumber String?
+  expiryDate  DateTime?
+  quantity    Int       @default(0) // quantity received in this batch
+  note        String?
+  createdAt   DateTime  @default(now())
+
+  tenantId    String
+  variantId   String
+  warehouseId String
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  variant   Variant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([variantId])
+  @@index([expiryDate])
 }
 
 // ----------------------------------------------------------------------------
@@ -184,6 +212,7 @@ model Warehouse {
   purchaseOrders PurchaseOrder[]
   salesOrders    SalesOrder[]
   salesReturns   SalesReturn[]
+  stockBatches   StockBatch[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -514,4 +543,26 @@ model AuditLog {
   @@index([tenantId])
   @@index([tenantId, entity])
   @@index([createdAt])
+}
+
+// ----------------------------------------------------------------------------
+// Expenses (operating costs — feeds the Profit & Loss report)
+// ----------------------------------------------------------------------------
+model Expense {
+  id        String   @id @default(cuid())
+  category  String   // RENT | SALARY | UTILITIES | TRANSPORT | MARKETING | SUPPLIES | OTHER
+  amount    Int      // BDT
+  note      String?
+  method    String?  // CASH | BANK | MOBILE | OTHER
+  spentAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  tenantId String
+  userId   String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([spentAt])
 }

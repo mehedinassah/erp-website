@@ -29,6 +29,7 @@ type Defaults = {
   costPrice?: number;
   sellPrice?: number;
   targetStock?: number;
+  trackExpiry?: boolean;
   status?: string;
 };
 
@@ -327,6 +328,20 @@ export function ProductForm({
               <Input id="targetStock" name="targetStock" type="number" min={0} defaultValue={defaults.targetStock ?? 0} className="tabular" />
               <p className="mt-1 text-xs text-muted-foreground">How many units you aim to keep in stock (0 = no target).</p>
             </Field>
+            <label className="flex cursor-pointer items-start gap-2 rounded-md border border-border p-3 text-sm">
+              <input
+                type="checkbox"
+                name="trackExpiry"
+                defaultChecked={defaults.trackExpiry ?? false}
+                className="mt-0.5 accent-[var(--accent)]"
+              />
+              <span>
+                <span className="font-medium">Track batch &amp; expiry</span>
+                <span className="block text-xs text-muted-foreground">
+                  For medicines, food, cosmetics — record batch numbers and expiry dates when receiving stock.
+                </span>
+              </span>
+            </label>
           </CardContent>
         </Card>
 

@@ -19,6 +19,10 @@ import {
   FileText,
   ShieldCheck,
   Building2,
+  CalendarClock,
+  Wallet2,
+  LineChart,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,6 +57,7 @@ export const NAV: NavSection[] = [
     items: [
       { href: "/stock", label: "Stock control", icon: Boxes },
       { href: "/stock/transfer", label: "Transfer stock", icon: ArrowLeftRight, managerOnly: true },
+      { href: "/stock/expiry", label: "Batches & expiry", icon: CalendarClock },
       { href: "/warehouses", label: "Warehouses", icon: Warehouse },
     ],
   },
@@ -60,6 +65,7 @@ export const NAV: NavSection[] = [
     section: "Purchasing",
     items: [
       { href: "/purchases", label: "Purchase orders", icon: Truck },
+      { href: "/purchases/reorder", label: "Reorder suggestions", icon: Sparkles, managerOnly: true },
       { href: "/suppliers", label: "Suppliers", icon: Factory },
     ],
   },
@@ -78,6 +84,13 @@ export const NAV: NavSection[] = [
       { href: "/ledger", label: "Overview", icon: Wallet },
       { href: "/ledger/paona", label: "Paona (receivable)", icon: ArrowDownLeft },
       { href: "/ledger/dena", label: "Dena (payable)", icon: ArrowUpRight },
+    ],
+  },
+  {
+    section: "Finance",
+    items: [
+      { href: "/expenses", label: "Expenses", icon: Wallet2, managerOnly: true },
+      { href: "/reports/pnl", label: "Profit & Loss", icon: LineChart, managerOnly: true },
     ],
   },
   {
