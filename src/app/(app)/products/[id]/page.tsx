@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Pencil, Archive, ArchiveRestore } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -110,6 +111,26 @@ export default async function ProductDetailPage({
           </>
         )}
       </PageHeader>
+
+      {/* Product image */}
+      {product.imageUrl && (
+        <Card className="mb-6 overflow-hidden p-4">
+          <div className="flex items-center gap-4">
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              width={96}
+              height={96}
+              unoptimized
+              className="size-24 shrink-0 rounded-lg border border-border object-cover"
+            />
+            <div className="min-w-0">
+              <p className="font-medium">{product.name}</p>
+              <p className="text-sm text-muted-foreground">{product.category.name}</p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Summary cards */}
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
