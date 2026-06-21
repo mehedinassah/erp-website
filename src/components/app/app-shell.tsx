@@ -7,6 +7,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   Menu, X, LogOut, ChevronsUpDown, Search,
   LayoutDashboard, Package, ScanLine, Moon, Sun, Shield, UserCircle,
+  Shirt, Gem, ShoppingCart, Pill, type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { NAV } from "./nav-config";
@@ -34,20 +35,27 @@ function isActive(pathname: string, href: string) {
 
 function NavLinks({
   role,
+  businessType,
   isSuperAdmin = false,
   onNavigate,
 }: {
   role: string;
+  businessType: string;
   isSuperAdmin?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const PRODUCT_ICON: Record<string, LucideIcon> = {
+    CLOTHING: Shirt, JEWELLERY: Gem, GROCERY: ShoppingCart, PHARMACY: Pill, ELECTRONICS: Package, GENERAL: Package,
+  };
+  const productIcon = PRODUCT_ICON[businessType] ?? Package;
   const groups = NAV.map((g) => ({
     ...g,
     items: g.items.filter(
       (it) =>
         (!it.adminOnly || role === "ADMIN") &&
-        (!it.managerOnly || role === "ADMIN" || role === "MANAGER"),
+        (!it.managerOnly || role === "ADMIN" || role === "MANAGER") &&
+        (!it.businessTypes || it.businessTypes.includes(businessType)),
     ),
   })).filter((g) => g.items.length > 0);
   // Platform-owner-only section (controlled by SUPER_ADMIN_EMAILS, not roles).
@@ -67,7 +75,7 @@ function NavLinks({
           <ul className="space-y-0.5">
             {group.items.map((item) => {
               const active = isActive(pathname, item.href);
-              const Icon = item.icon;
+              const Icon = item.href === "/products" ? productIcon : item.icon;
               return (
                 <li key={item.href}>
                   <Link
@@ -163,7 +171,9 @@ function Brand() {
 /* ── Inline theme toggle for use inside the drawer ─────────────────── */
 function DrawerThemeToggle() {
   const [dark, setDark] = useState(false);
+  // Sync toggle state with the actual <html> class on mount.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDark(document.documentElement.classList.contains("dark"));
   }, []);
   function toggle() {
@@ -248,10 +258,12 @@ function UserMenu({ session }: { session: Session }) {
 /* ── App shell ─────────────────────────────────────────────────────── */
 export function AppShell({
   session,
+  businessType = "CLOTHING",
   isSuperAdmin = false,
   children,
 }: {
   session: Session;
+  businessType?: string;
   isSuperAdmin?: boolean;
   children: React.ReactNode;
 }) {
@@ -263,7 +275,7 @@ export function AppShell({
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-surface lg:flex print:hidden">
         <Brand />
-        <NavLinks role={session.role} isSuperAdmin={isSuperAdmin} />
+        <NavLinks role={session.role} businessType={businessType} isSuperAdmin={isSuperAdmin} />
         <div className="hairline p-3 text-[0.65rem] text-muted-foreground">
           PERICO ERP · v0.1
         </div>
@@ -297,7 +309,7 @@ export function AppShell({
               <X className="size-5" />
             </button>
           </div>
-          <NavLinks role={session.role} isSuperAdmin={isSuperAdmin} onNavigate={() => setMobileOpen(false)} />
+          <NavLinks role={session.role} businessType={businessType} isSuperAdmin={isSuperAdmin} onNavigate={() => setMobileOpen(false)} />
           {/* Footer: account + theme toggle + logout */}
           <div className="hairline space-y-0.5 p-3">
             <Link

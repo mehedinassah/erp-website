@@ -7,14 +7,18 @@ export type Role = (typeof ROLES)[number];
 export const GENDERS = ["MEN", "WOMEN", "UNISEX", "KIDS"] as const;
 export type Gender = (typeof GENDERS)[number];
 
-// ---- Business type (drives catalog labels & which fields show) ----
-export const BUSINESS_TYPES = ["CLOTHING", "GROCERY", "PHARMACY", "GENERAL"] as const;
+// ---- Business type (drives catalog labels, fields, and modules) ----
+export const BUSINESS_TYPES = [
+  "CLOTHING", "JEWELLERY", "GROCERY", "PHARMACY", "ELECTRONICS", "GENERAL",
+] as const;
 export type BusinessType = (typeof BUSINESS_TYPES)[number];
 
 export const BUSINESS_TYPE_LABEL: Record<BusinessType, string> = {
   CLOTHING: "Clothing / Fashion",
+  JEWELLERY: "Jewellery",
   GROCERY: "Grocery / Retail",
   PHARMACY: "Pharmacy",
+  ELECTRONICS: "Electronics",
   GENERAL: "General / Other",
 };
 
@@ -24,14 +28,62 @@ export const VARIANT_AXES: Record<
   { axis1: string; axis2: string | null; clothingChips: boolean }
 > = {
   CLOTHING: { axis1: "Size", axis2: "Colour", clothingChips: true },
+  JEWELLERY: { axis1: "Size", axis2: "Weight", clothingChips: false },
   GROCERY: { axis1: "Size / Weight", axis2: "Pack", clothingChips: false },
   PHARMACY: { axis1: "Strength", axis2: "Pack", clothingChips: false },
+  ELECTRONICS: { axis1: "Model / Variant", axis2: "Colour", clothingChips: false },
   GENERAL: { axis1: "Variant", axis2: "Option", clothingChips: false },
+};
+
+/** Generic product attribute fields shown per business type.
+ *  Each maps to an existing column (gender|material|season|brand|unit) with a
+ *  trade-specific label, so no per-industry schema columns are needed. */
+export type ProductFieldDef = {
+  name: "gender" | "material" | "season" | "brand" | "unit";
+  label: string;
+  kind: "text" | "gender";
+  placeholder?: string;
+};
+
+export const PRODUCT_FIELDS: Record<BusinessType, ProductFieldDef[]> = {
+  CLOTHING: [
+    { name: "gender", label: "Audience", kind: "gender" },
+    { name: "material", label: "Material", kind: "text", placeholder: "Cotton" },
+    { name: "season", label: "Season / collection", kind: "text", placeholder: "Eid" },
+  ],
+  JEWELLERY: [
+    { name: "material", label: "Metal", kind: "text", placeholder: "Gold / Silver" },
+    { name: "season", label: "Purity / Karat", kind: "text", placeholder: "22K" },
+    { name: "brand", label: "Brand / maker", kind: "text" },
+  ],
+  GROCERY: [
+    { name: "brand", label: "Brand", kind: "text", placeholder: "Pran, Fresh…" },
+    { name: "unit", label: "Unit of measure", kind: "text", placeholder: "kg, pcs, pack" },
+  ],
+  PHARMACY: [
+    { name: "material", label: "Generic name", kind: "text", placeholder: "Paracetamol" },
+    { name: "brand", label: "Manufacturer", kind: "text", placeholder: "Square, Beximco…" },
+    { name: "unit", label: "Form", kind: "text", placeholder: "tablet, syrup, strip" },
+  ],
+  ELECTRONICS: [
+    { name: "brand", label: "Brand", kind: "text", placeholder: "Samsung, Walton…" },
+    { name: "material", label: "Model", kind: "text", placeholder: "Model no." },
+    { name: "unit", label: "Warranty", kind: "text", placeholder: "1 year" },
+  ],
+  GENERAL: [
+    { name: "brand", label: "Brand", kind: "text" },
+    { name: "unit", label: "Unit of measure", kind: "text", placeholder: "pcs, box" },
+  ],
 };
 
 /** Whether clothing-specific fields (audience/material/season) should show. */
 export function showsClothingFields(bt: string): boolean {
   return bt === "CLOTHING";
+}
+
+/** Batch + expiry tracking is only meaningful for perishables. */
+export function canTrackExpiry(bt: string): boolean {
+  return bt === "GROCERY" || bt === "PHARMACY";
 }
 
 export const PRODUCT_STATUSES = ["ACTIVE", "ARCHIVED"] as const;

@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/superadmin";
+import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app/app-shell";
 
 export default async function AppLayout({
@@ -8,6 +9,10 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const session = await requireUser();
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.tenantId },
+    select: { businessType: true },
+  });
   return (
     <AppShell
       session={{
@@ -15,6 +20,7 @@ export default async function AppLayout({
         email: session.email,
         role: session.role,
       }}
+      businessType={tenant?.businessType ?? "CLOTHING"}
       isSuperAdmin={isSuperAdmin(session.email)}
     >
       {children}

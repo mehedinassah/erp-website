@@ -8,7 +8,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Label, Field, FieldError } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GENDERS, PRODUCT_STATUSES, SIZES, VARIANT_AXES, showsClothingFields, type BusinessType } from "@/lib/enums";
+import { GENDERS, PRODUCT_STATUSES, SIZES, VARIANT_AXES, PRODUCT_FIELDS, canTrackExpiry, type BusinessType } from "@/lib/enums";
 import { COLOR_PALETTE } from "@/lib/constants";
 import type { ActionState } from "@/lib/validation";
 import { cn } from "@/lib/utils";
@@ -102,8 +102,10 @@ export function ProductForm({
   const router = useRouter();
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, {});
 
-  const clothing = showsClothingFields(businessType);
   const axes = VARIANT_AXES[(businessType as BusinessType)] ?? VARIANT_AXES.GENERAL;
+  const fields = PRODUCT_FIELDS[(businessType as BusinessType)] ?? PRODUCT_FIELDS.GENERAL;
+  const expiryAvailable = canTrackExpiry(businessType);
+  const hasGenderField = fields.some((f) => f.name === "gender");
 
   // Clothing uses chip presets; others use free-text values.
   const [sizes, setSizes] = useState<string[]>([]);
@@ -153,7 +155,7 @@ export function ProductForm({
           <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field className="sm:col-span-2">
               <Label htmlFor="name" required>Product name</Label>
-              <Input id="name" name="name" defaultValue={defaults.name} placeholder={clothing ? "Hand-Block Cotton Panjabi" : "Product name"} />
+              <Input id="name" name="name" defaultValue={defaults.name} placeholder={businessType === "CLOTHING" ? "Hand-Block Cotton Panjabi" : "Product name"} />
               <FieldError>{fe.name}</FieldError>
             </Field>
 
@@ -174,39 +176,29 @@ export function ProductForm({
               <FieldError>{fe.categoryId}</FieldError>
             </Field>
 
-            {/* Clothing-specific fields */}
-            {clothing ? (
-              <>
-                <Field>
-                  <Label htmlFor="gender">Audience</Label>
-                  <Select id="gender" name="gender" defaultValue={defaults.gender ?? "UNISEX"}>
+            {/* Business-type-specific attribute fields (config-driven) */}
+            {!hasGenderField && <input type="hidden" name="gender" value="UNISEX" />}
+            {fields.map((f) =>
+              f.kind === "gender" ? (
+                <Field key={f.name}>
+                  <Label htmlFor={f.name}>{f.label}</Label>
+                  <Select id={f.name} name={f.name} defaultValue={defaults.gender ?? "UNISEX"}>
                     {GENDERS.map((g) => (
                       <option key={g} value={g}>{g.charAt(0) + g.slice(1).toLowerCase()}</option>
                     ))}
                   </Select>
                 </Field>
-                <Field>
-                  <Label htmlFor="material">Material</Label>
-                  <Input id="material" name="material" defaultValue={defaults.material ?? ""} placeholder="Cotton" />
+              ) : (
+                <Field key={f.name}>
+                  <Label htmlFor={f.name}>{f.label}</Label>
+                  <Input
+                    id={f.name}
+                    name={f.name}
+                    defaultValue={(defaults[f.name as "material" | "season" | "brand" | "unit"] as string | null) ?? ""}
+                    placeholder={f.placeholder}
+                  />
                 </Field>
-                <Field>
-                  <Label htmlFor="season">Season / collection</Label>
-                  <Input id="season" name="season" defaultValue={defaults.season ?? ""} placeholder="Eid" />
-                </Field>
-              </>
-            ) : (
-              <>
-                {/* Keep gender at default for non-clothing */}
-                <input type="hidden" name="gender" value="UNISEX" />
-                <Field>
-                  <Label htmlFor="brand">Brand</Label>
-                  <Input id="brand" name="brand" defaultValue={defaults.brand ?? ""} placeholder="Brand / manufacturer" />
-                </Field>
-                <Field>
-                  <Label htmlFor="unit">Unit of measure</Label>
-                  <Input id="unit" name="unit" defaultValue={defaults.unit ?? ""} placeholder="pcs, kg, box, strip…" />
-                </Field>
-              </>
+              ),
             )}
 
             {mode === "edit" && (
@@ -328,20 +320,22 @@ export function ProductForm({
               <Input id="targetStock" name="targetStock" type="number" min={0} defaultValue={defaults.targetStock ?? 0} className="tabular" />
               <p className="mt-1 text-xs text-muted-foreground">How many units you aim to keep in stock (0 = no target).</p>
             </Field>
-            <label className="flex cursor-pointer items-start gap-2 rounded-md border border-border p-3 text-sm">
-              <input
-                type="checkbox"
-                name="trackExpiry"
-                defaultChecked={defaults.trackExpiry ?? false}
-                className="mt-0.5 accent-[var(--accent)]"
-              />
-              <span>
-                <span className="font-medium">Track batch &amp; expiry</span>
-                <span className="block text-xs text-muted-foreground">
-                  For medicines, food, cosmetics — record batch numbers and expiry dates when receiving stock.
+            {expiryAvailable && (
+              <label className="flex cursor-pointer items-start gap-2 rounded-md border border-border p-3 text-sm">
+                <input
+                  type="checkbox"
+                  name="trackExpiry"
+                  defaultChecked={defaults.trackExpiry ?? false}
+                  className="mt-0.5 accent-[var(--accent)]"
+                />
+                <span>
+                  <span className="font-medium">Track batch &amp; expiry</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Record batch numbers and expiry dates when receiving stock.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+            )}
           </CardContent>
         </Card>
 

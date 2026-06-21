@@ -33,6 +33,7 @@ export type NavItem = {
   icon: LucideIcon;
   adminOnly?: boolean;
   managerOnly?: boolean; // visible to ADMIN + MANAGER only (hidden from STAFF)
+  businessTypes?: string[]; // if set, only show for these tenant business types
 };
 
 export type NavSection = {
@@ -59,7 +60,7 @@ export const NAV: NavSection[] = [
       { href: "/stock", label: "Stock control", icon: Boxes },
       { href: "/stock/take", label: "Stock take", icon: ClipboardCheck, managerOnly: true },
       { href: "/stock/transfer", label: "Transfer stock", icon: ArrowLeftRight, managerOnly: true },
-      { href: "/stock/expiry", label: "Batches & expiry", icon: CalendarClock },
+      { href: "/stock/expiry", label: "Batches & expiry", icon: CalendarClock, businessTypes: ["GROCERY", "PHARMACY"] },
       { href: "/warehouses", label: "Warehouses", icon: Warehouse },
     ],
   },
