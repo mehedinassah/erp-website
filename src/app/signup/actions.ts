@@ -54,6 +54,7 @@ export async function signupAction(
           slug,
           plan: "TRIAL",
           status: "ACTIVE",
+          trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day free trial
         },
       });
 

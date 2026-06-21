@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireRole, getSession } from "@/lib/auth";
+import { checkUserLimit } from "@/lib/limits";
 import { ROLES } from "@/lib/enums";
 import type { ActionState } from "@/lib/validation";
 
@@ -31,6 +32,9 @@ export async function createUser(
   if (password.length < 6) fieldErrors.password = "Min 6 characters";
   if (Object.keys(fieldErrors).length)
     return { error: "Please fix the highlighted fields.", fieldErrors };
+
+  const limitErr = await checkUserLimit(tenantId);
+  if (limitErr) return { error: limitErr };
 
   try {
     await prisma.user.create({

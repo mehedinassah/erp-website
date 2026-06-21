@@ -7,7 +7,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   Menu, X, LogOut, ChevronsUpDown, Search,
   LayoutDashboard, Package, ScanLine, Moon, Sun, Shield, UserCircle,
-  Shirt, Gem, ShoppingCart, Pill, type LucideIcon,
+  Shirt, Gem, ShoppingCart, Pill, CreditCard, type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { NAV } from "./nav-config";
@@ -16,6 +16,9 @@ import { logoutAction } from "@/app/(app)/account-actions";
 import { ROLE_LABEL, type Role } from "@/lib/enums";
 import { cn } from "@/lib/utils";
 import { ToastProvider } from "@/components/ui/toast";
+import { BillingGuard } from "@/components/app/billing-guard";
+
+type Access = { locked: boolean; onTrial: boolean; daysLeft: number; planName: string; reason: string };
 
 type Session = { name: string; email: string; role: string };
 
@@ -62,7 +65,10 @@ function NavLinks({
   if (isSuperAdmin) {
     groups.push({
       section: "Platform",
-      items: [{ href: "/admin", label: "All businesses", icon: Shield }],
+      items: [
+        { href: "/admin", label: "All businesses", icon: Shield },
+        { href: "/admin/payments", label: "Payments", icon: CreditCard },
+      ],
     });
   }
   return (
@@ -260,11 +266,13 @@ export function AppShell({
   session,
   businessType = "CLOTHING",
   isSuperAdmin = false,
+  access,
   children,
 }: {
   session: Session;
   businessType?: string;
   isSuperAdmin?: boolean;
+  access?: Access;
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -379,7 +387,9 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="px-4 py-6 pb-20 sm:px-6 lg:px-8 lg:pb-6 print:p-0">{children}</main>
+        <main className="px-4 py-6 pb-20 sm:px-6 lg:px-8 lg:pb-6 print:p-0">
+          {access ? <BillingGuard access={access}>{children}</BillingGuard> : children}
+        </main>
       </div>
 
       <BottomNav onMenuClick={() => setMobileOpen(true)} />

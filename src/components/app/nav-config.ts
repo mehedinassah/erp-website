@@ -24,6 +24,7 @@ import {
   LineChart,
   Sparkles,
   ClipboardCheck,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -99,6 +100,7 @@ export const NAV: NavSection[] = [
   {
     section: "System",
     items: [
+      { href: "/billing", label: "Billing & plan", icon: CreditCard, adminOnly: true },
       { href: "/settings/business", label: "Business profile", icon: Building2, adminOnly: true },
       { href: "/settings/users", label: "Users & access", icon: UserCog, adminOnly: true },
       { href: "/settings", label: "Settings", icon: Settings, adminOnly: true },

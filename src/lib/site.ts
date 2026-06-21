@@ -17,3 +17,9 @@ export const CONTACT = {
   whatsappUrl: `https://wa.me/${WHATSAPP_DIGITS}`,
   facebookUrl: "https://www.facebook.com/mandi.mandihassan",
 } as const;
+
+/** Where customers send manual subscription payments (bKash / Nagad). */
+export const BILLING = {
+  bkash: "01919234860",
+  nagad: "01919234860",
+} as const;

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { checkWarehouseLimit } from "@/lib/limits";
 import { warehouseSchema, fieldErrorsFrom, type ActionState } from "@/lib/validation";
 
 function parse(formData: FormData) {
@@ -22,6 +23,9 @@ export async function createWarehouse(
   const parsed = parse(formData);
   if (!parsed.success)
     return { error: "Please fix the highlighted fields.", fieldErrors: fieldErrorsFrom(parsed.error) };
+
+  const limitErr = await checkWarehouseLimit(tenantId);
+  if (limitErr) return { error: limitErr };
 
   const clash = await prisma.warehouse.findFirst({
     where: { tenantId, code: parsed.data.code },

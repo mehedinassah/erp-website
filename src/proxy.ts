@@ -74,6 +74,7 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/privacy") ||
     path.startsWith("/terms") ||
     path.startsWith("/invoice/") || // public tokenized invoice links (shared with customers)
+    path.startsWith("/api/billing/") || // payment gateway callbacks (server-to-server)
     // Metadata image routes (file conventions) — must be reachable by crawlers
     path.startsWith("/opengraph-image") ||
     path.startsWith("/twitter-image");

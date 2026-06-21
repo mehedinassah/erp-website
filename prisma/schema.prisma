@@ -23,6 +23,8 @@ model Tenant {
   slug      String   @unique
   plan      String   @default("TRIAL")   // TRIAL | STARTER | BUSINESS | PRO
   status    String   @default("ACTIVE")  // ACTIVE | SUSPENDED
+  trialEndsAt      DateTime?              // end of free trial (set at signup)
+  currentPeriodEnd DateTime?              // end of current paid subscription period
 
   // Business profile — appears on invoices, quotations & purchase orders
   businessType  String   @default("CLOTHING") // CLOTHING | GROCERY | PHARMACY | GENERAL
@@ -54,6 +56,7 @@ model Tenant {
   auditLogs      AuditLog[]
   stockBatches   StockBatch[]
   expenses       Expense[]
+  payments       Payment[]
 }
 
 // ----------------------------------------------------------------------------
@@ -543,6 +546,29 @@ model AuditLog {
   @@index([tenantId])
   @@index([tenantId, entity])
   @@index([createdAt])
+}
+
+// ----------------------------------------------------------------------------
+// Subscription payments (SaaS billing)
+// ----------------------------------------------------------------------------
+model Payment {
+  id           String    @id @default(cuid())
+  plan         String    // STARTER | BUSINESS | PRO
+  amount       Int       // BDT
+  periodMonths Int       @default(1)
+  method       String    // MANUAL | SSLCOMMERZ
+  status       String    @default("PENDING") // PENDING | PAID | FAILED
+  reference    String?   // manual txn id, or gateway transaction/val id
+  gatewaySessionId String?
+  note         String?
+  createdAt    DateTime  @default(now())
+  paidAt       DateTime?
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
 }
 
 // ----------------------------------------------------------------------------
