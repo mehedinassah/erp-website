@@ -3,6 +3,8 @@ import { Plus, Search, Wallet, Phone } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { canManageLedger, canDelete } from "@/lib/permissions";
 import { ClearButton } from "@/components/app/clear-button";
+import { SendAllSmsButton } from "@/components/app/send-sms-button";
+import { smsConfigured } from "@/lib/sms";
 import { clearLedger } from "@/app/(app)/clear-actions";
 import { formatTaka } from "@/lib/format";
 import { summarize } from "@/lib/ledger";
@@ -70,6 +72,7 @@ export async function LedgerListView({
             : "Businesses and people you need to pay."
         }
       >
+        {manage && isPaona && smsConfigured() && <SendAllSmsButton />}
         {manage && (
           <Button asChild variant="gold">
             <Link href={`/ledger/new?type=${type}`}>

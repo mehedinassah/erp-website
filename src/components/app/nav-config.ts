@@ -23,6 +23,7 @@ import {
   Wallet2,
   LineChart,
   Sparkles,
+  ClipboardCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -56,6 +57,7 @@ export const NAV: NavSection[] = [
     section: "Inventory",
     items: [
       { href: "/stock", label: "Stock control", icon: Boxes },
+      { href: "/stock/take", label: "Stock take", icon: ClipboardCheck, managerOnly: true },
       { href: "/stock/transfer", label: "Transfer stock", icon: ArrowLeftRight, managerOnly: true },
       { href: "/stock/expiry", label: "Batches & expiry", icon: CalendarClock },
       { href: "/warehouses", label: "Warehouses", icon: Warehouse },

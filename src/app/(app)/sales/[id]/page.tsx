@@ -18,6 +18,9 @@ import { Button } from "@/components/ui/button";
 import { PrintButton } from "@/components/app/print-button";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { RecordPaymentForm } from "@/components/app/record-payment-form";
+import { InvoiceShare } from "@/components/app/invoice-share";
+import { makeInvoiceToken } from "@/lib/invoice-token";
+import { SITE_URL } from "@/lib/site";
 import { deleteSalesOrder } from "../actions";
 
 const paymentTone = (s: string) =>
@@ -78,6 +81,18 @@ export default async function SalesOrderInvoicePage({
           )}
           <PrintButton />
         </div>
+      </div>
+
+      {/* Share invoice (public link) */}
+      <div className="mb-4 print:hidden">
+        <InvoiceShare
+          url={`${SITE_URL}/invoice/${order.id}?t=${makeInvoiceToken(order.id)}`}
+          orderNumber={order.orderNumber}
+          customerPhone={order.customer?.phone ?? null}
+          customerEmail={order.customer?.email ?? null}
+          businessName={biz?.name ?? "our shop"}
+          total={formatBDT(order.total)}
+        />
       </div>
 
       <Card className="animate-rise overflow-hidden p-8 sm:p-10">

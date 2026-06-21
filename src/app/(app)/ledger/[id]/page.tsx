@@ -15,6 +15,7 @@ import { requireUser } from "@/lib/auth";
 import { canManageLedger, canDelete } from "@/lib/permissions";
 import { formatTaka, formatDate } from "@/lib/format";
 import { summarize, withRunningBalance } from "@/lib/ledger";
+import { smsConfigured } from "@/lib/sms";
 import { METHOD_LABEL, type PaymentMethod, type LedgerType } from "@/lib/enums";
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ import { DeleteButton } from "@/components/ui/delete-button";
 import { PrintButton } from "@/components/app/print-button";
 import { EntryDialog } from "@/components/app/entry-dialog";
 import { ReminderButtons } from "@/components/app/reminder-buttons";
+import { SendSmsButton } from "@/components/app/send-sms-button";
 import { deleteAccount } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -195,7 +197,12 @@ export default async function AccountProfile({
                 <p className="mb-2 text-xs font-medium text-muted-foreground">
                   Send a due reminder
                 </p>
-                <ReminderButtons phone={account.phone} message={reminderMsg} />
+                <div className="flex flex-wrap gap-2">
+                  <ReminderButtons phone={account.phone} message={reminderMsg} />
+                  {manage && account.phone && smsConfigured() && (
+                    <SendSmsButton accountId={account.id} />
+                  )}
+                </div>
               </div>
             )}
           </CardContent>
