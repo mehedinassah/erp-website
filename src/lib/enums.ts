@@ -76,6 +76,16 @@ export const PRODUCT_FIELDS: Record<BusinessType, ProductFieldDef[]> = {
   ],
 };
 
+/** Suggested starter categories per business type (one-click setup). */
+export const STARTER_CATEGORIES: Record<BusinessType, string[]> = {
+  CLOTHING: ["Panjabi", "Saree", "Kurti", "Shirt", "T-Shirt", "Trousers", "Kids"],
+  JEWELLERY: ["Rings", "Necklaces", "Earrings", "Bangles", "Bracelets", "Chains", "Pendants"],
+  GROCERY: ["Rice & Grains", "Cooking Oil", "Spices", "Snacks", "Beverages", "Dairy", "Cleaning"],
+  PHARMACY: ["Tablets", "Capsules", "Syrups", "Injections", "Devices", "Personal Care", "Baby Care"],
+  ELECTRONICS: ["Mobiles", "Laptops", "Accessories", "Audio", "Home Appliances", "Cables & Chargers"],
+  GENERAL: ["General", "Accessories", "Others"],
+};
+
 /** Whether clothing-specific fields (audience/material/season) should show. */
 export function showsClothingFields(bt: string): boolean {
   return bt === "CLOTHING";

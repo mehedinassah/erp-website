@@ -4,12 +4,36 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { STARTER_CATEGORIES, type BusinessType } from "@/lib/enums";
 import {
   categorySchema,
   slugify,
   fieldErrorsFrom,
   type ActionState,
 } from "@/lib/validation";
+
+/** Bulk-add the suggested starter categories for the tenant's business type. */
+export async function addStarterCategories() {
+  const { tenantId } = await requireRole(["ADMIN", "MANAGER"]);
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { businessType: true },
+  });
+  const names = STARTER_CATEGORIES[(tenant?.businessType as BusinessType) ?? "GENERAL"] ?? STARTER_CATEGORIES.GENERAL;
+
+  const existing = await prisma.category.findMany({ where: { tenantId }, select: { slug: true } });
+  const have = new Set(existing.map((c) => c.slug));
+
+  const toCreate = names
+    .map((name) => ({ name, slug: slugify(name), tenantId }))
+    .filter((c) => !have.has(c.slug));
+
+  if (toCreate.length) {
+    await prisma.category.createMany({ data: toCreate });
+  }
+  revalidatePath("/categories");
+  redirect("/categories?starter=1");
+}
 
 export async function createCategory(
   _prev: ActionState,
