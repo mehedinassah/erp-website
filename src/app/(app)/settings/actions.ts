@@ -25,11 +25,15 @@ export async function resetTransactions() {
   const session = await requireRole(["ADMIN"]);
   const { tenantId } = session;
   await prisma.$transaction(async (tx) => {
+    // Sales returns reference sales orders (FK) — clear them first
+    await tx.salesReturnItem.deleteMany({ where: { salesReturn: { tenantId } } });
+    await tx.salesReturn.deleteMany({ where: { tenantId } });
     await tx.sOItem.deleteMany({ where: { salesOrder: { tenantId } } });
     await tx.salesOrder.deleteMany({ where: { tenantId } });
     await tx.pOItem.deleteMany({ where: { purchaseOrder: { tenantId } } });
     await tx.purchaseOrder.deleteMany({ where: { tenantId } });
     await tx.stockMovement.deleteMany({ where: { warehouse: { tenantId } } });
+    await tx.stockBatch.deleteMany({ where: { tenantId } });
     await tx.stockLevel.updateMany({ where: { variant: { product: { tenantId } } }, data: { quantity: 0 } });
   });
   revalidateAll();
@@ -42,15 +46,24 @@ export async function resetAllData() {
   const session = await requireRole(["ADMIN"]);
   const { tenantId } = session;
   await prisma.$transaction(async (tx) => {
+    // Order matters — delete children/referencing rows before parents (FK safe)
+    await tx.salesReturnItem.deleteMany({ where: { salesReturn: { tenantId } } });
+    await tx.salesReturn.deleteMany({ where: { tenantId } });
     await tx.sOItem.deleteMany({ where: { salesOrder: { tenantId } } });
     await tx.salesOrder.deleteMany({ where: { tenantId } });
+    await tx.quoteItem.deleteMany({ where: { quotation: { tenantId } } });
+    await tx.quotation.deleteMany({ where: { tenantId } });
     await tx.pOItem.deleteMany({ where: { purchaseOrder: { tenantId } } });
     await tx.purchaseOrder.deleteMany({ where: { tenantId } });
     await tx.stockMovement.deleteMany({ where: { warehouse: { tenantId } } });
+    await tx.stockBatch.deleteMany({ where: { tenantId } });
     await tx.stockLevel.deleteMany({ where: { variant: { product: { tenantId } } } });
     await tx.variant.deleteMany({ where: { product: { tenantId } } });
     await tx.product.deleteMany({ where: { tenantId } });
     await tx.category.deleteMany({ where: { tenantId } });
+    await tx.ledgerEntry.deleteMany({ where: { ledger: { tenantId } } });
+    await tx.ledgerAccount.deleteMany({ where: { tenantId } });
+    await tx.expense.deleteMany({ where: { tenantId } });
     await tx.supplier.deleteMany({ where: { tenantId } });
     await tx.customer.deleteMany({ where: { tenantId } });
   });
