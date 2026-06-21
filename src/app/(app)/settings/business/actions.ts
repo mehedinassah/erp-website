@@ -23,6 +23,10 @@ export async function updateBusinessProfile(
     return { error: "Business name is required.", fieldErrors: { name: "Required" } };
   }
 
+  const businessTypeRaw = String(formData.get("businessType") ?? "CLOTHING");
+  const businessType = ["CLOTHING", "GROCERY", "PHARMACY", "GENERAL"].includes(businessTypeRaw)
+    ? businessTypeRaw
+    : "CLOTHING";
   const taxRatePct = Math.min(100, Math.max(0, Math.trunc(Number(formData.get("taxRatePct")) || 0)));
   const invoicePrefix =
     String(formData.get("invoicePrefix") ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "") || "SO";
@@ -33,6 +37,7 @@ export async function updateBusinessProfile(
       where: { id: tenantId },
       data: {
         name,
+        businessType,
         legalName: str(formData, "legalName"),
         email: str(formData, "email"),
         phone: str(formData, "phone"),

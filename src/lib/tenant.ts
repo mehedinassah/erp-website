@@ -3,6 +3,7 @@ import { prisma } from "./prisma";
 export type TenantProfile = {
   id: string;
   name: string;
+  businessType: string;
   legalName: string | null;
   email: string | null;
   phone: string | null;
@@ -22,6 +23,7 @@ export async function getTenantProfile(tenantId: string): Promise<TenantProfile 
     select: {
       id: true,
       name: true,
+      businessType: true,
       legalName: true,
       email: true,
       phone: true,

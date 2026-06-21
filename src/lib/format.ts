@@ -42,6 +42,12 @@ export function formatNumber(n: number): string {
   return numberFmt.format(n);
 }
 
+/** Human variant label that omits empty axes (single-SKU / single-axis products). */
+export function formatVariant(size: string, color: string, sep = " · "): string {
+  const parts = [size, color].map((s) => (s ?? "").trim()).filter((s) => s && s !== "Default");
+  return parts.join(sep);
+}
+
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return d.toLocaleDateString("en-GB", {

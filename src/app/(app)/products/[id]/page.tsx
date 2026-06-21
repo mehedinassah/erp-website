@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { canDelete, canManageProducts } from "@/lib/permissions";
 import { formatBDT, formatNumber } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/app/page-header";
 import {
   Card,
@@ -148,6 +149,36 @@ export default async function ProductDetailPage({
           </Card>
         ))}
       </div>
+
+      {/* Target stock indicator */}
+      {product.targetStock > 0 && (
+        <Card className="mb-6 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">Stock vs target</p>
+              <p className="tabular mt-1 font-display text-lg font-semibold">
+                {formatNumber(totalStock)} / {formatNumber(product.targetStock)}
+              </p>
+            </div>
+            {totalStock < product.targetStock ? (
+              <Badge tone="warning">
+                {formatNumber(product.targetStock - totalStock)} below target — restock
+              </Badge>
+            ) : (
+              <Badge tone="success">At / above target</Badge>
+            )}
+          </div>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className={cn(
+                "h-full rounded-full",
+                totalStock < product.targetStock ? "bg-warning" : "bg-success",
+              )}
+              style={{ width: `${Math.min(100, Math.round((totalStock / product.targetStock) * 100))}%` }}
+            />
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Attributes */}

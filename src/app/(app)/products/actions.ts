@@ -20,10 +20,13 @@ function parseBase(formData: FormData) {
     gender: formData.get("gender"),
     material: formData.get("material") ?? undefined,
     season: formData.get("season") ?? undefined,
+    brand: formData.get("brand") ?? undefined,
+    unit: formData.get("unit") ?? undefined,
     description: formData.get("description") ?? undefined,
     imageUrl: formData.get("imageUrl") ?? undefined,
     costPrice: formData.get("costPrice"),
     sellPrice: formData.get("sellPrice"),
+    targetStock: formData.get("targetStock") ?? 0,
     status: formData.get("status") ?? "ACTIVE",
   });
 }
@@ -52,7 +55,7 @@ export async function createProduct(
     variants = [];
   }
   if (variants.length === 0) {
-    return { error: "Add at least one variant (pick sizes and colours)." };
+    return { error: "Add at least one variant, or choose “Single product (no variants)”." };
   }
 
   const warehouses = await prisma.warehouse.findMany({ where: { tenantId }, select: { id: true } });
@@ -69,20 +72,24 @@ export async function createProduct(
           gender: data.gender,
           material: data.material,
           season: data.season,
+          brand: data.brand,
+          unit: data.unit,
           description: data.description,
           imageUrl: data.imageUrl ?? null,
           costPrice: data.costPrice,
           sellPrice: data.sellPrice,
+          targetStock: data.targetStock,
           status: data.status,
           tenantId,
         },
       });
 
       for (const v of variants) {
+        const skuParts = [data.sku.toUpperCase(), code(v.size), code(v.color)].filter(Boolean);
         const variant = await tx.variant.create({
           data: {
             productId: p.id,
-            sku: `${data.sku.toUpperCase()}-${code(v.size)}-${code(v.color)}`,
+            sku: skuParts.join("-"),
             size: v.size,
             color: v.color,
             colorHex: v.colorHex ?? null,
@@ -135,10 +142,13 @@ export async function updateProduct(
         gender: data.gender,
         material: data.material,
         season: data.season,
+        brand: data.brand,
+        unit: data.unit,
         description: data.description,
         imageUrl: data.imageUrl ?? null,
         costPrice: data.costPrice,
         sellPrice: data.sellPrice,
+        targetStock: data.targetStock,
         status: data.status,
       },
     });

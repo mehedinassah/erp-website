@@ -7,6 +7,33 @@ export type Role = (typeof ROLES)[number];
 export const GENDERS = ["MEN", "WOMEN", "UNISEX", "KIDS"] as const;
 export type Gender = (typeof GENDERS)[number];
 
+// ---- Business type (drives catalog labels & which fields show) ----
+export const BUSINESS_TYPES = ["CLOTHING", "GROCERY", "PHARMACY", "GENERAL"] as const;
+export type BusinessType = (typeof BUSINESS_TYPES)[number];
+
+export const BUSINESS_TYPE_LABEL: Record<BusinessType, string> = {
+  CLOTHING: "Clothing / Fashion",
+  GROCERY: "Grocery / Retail",
+  PHARMACY: "Pharmacy",
+  GENERAL: "General / Other",
+};
+
+/** The two variant axes, relabeled per business type. axis2 optional. */
+export const VARIANT_AXES: Record<
+  BusinessType,
+  { axis1: string; axis2: string | null; clothingChips: boolean }
+> = {
+  CLOTHING: { axis1: "Size", axis2: "Colour", clothingChips: true },
+  GROCERY: { axis1: "Size / Weight", axis2: "Pack", clothingChips: false },
+  PHARMACY: { axis1: "Strength", axis2: "Pack", clothingChips: false },
+  GENERAL: { axis1: "Variant", axis2: "Option", clothingChips: false },
+};
+
+/** Whether clothing-specific fields (audience/material/season) should show. */
+export function showsClothingFields(bt: string): boolean {
+  return bt === "CLOTHING";
+}
+
 export const PRODUCT_STATUSES = ["ACTIVE", "ARCHIVED"] as const;
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 

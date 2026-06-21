@@ -5,9 +5,11 @@ import { Loader2, Building2 } from "lucide-react";
 import { updateBusinessProfile } from "@/app/(app)/settings/business/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Label, Field, FieldError } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
+import { BUSINESS_TYPES, BUSINESS_TYPE_LABEL, type BusinessType } from "@/lib/enums";
 import type { ActionState } from "@/lib/validation";
 import type { TenantProfile } from "@/lib/tenant";
 
@@ -37,6 +39,17 @@ export function BusinessProfileForm({ profile }: { profile: TenantProfile }) {
             <Label htmlFor="name" required>Business name</Label>
             <Input id="name" name="name" defaultValue={profile.name} placeholder="e.g. Aarong Gulshan" />
             <FieldError>{fe.name}</FieldError>
+          </Field>
+          <Field className="sm:col-span-2">
+            <Label htmlFor="businessType">Business type</Label>
+            <Select id="businessType" name="businessType" defaultValue={profile.businessType}>
+              {BUSINESS_TYPES.map((t) => (
+                <option key={t} value={t}>{BUSINESS_TYPE_LABEL[t as BusinessType]}</option>
+              ))}
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Controls the labels and fields on the product form (e.g. Size/Colour for clothing, Strength/Pack for pharmacy).
+            </p>
           </Field>
           <Field>
             <Label htmlFor="legalName">Legal / registered name</Label>

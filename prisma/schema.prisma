@@ -25,6 +25,7 @@ model Tenant {
   status    String   @default("ACTIVE")  // ACTIVE | SUSPENDED
 
   // Business profile — appears on invoices, quotations & purchase orders
+  businessType  String   @default("CLOTHING") // CLOTHING | GROCERY | PHARMACY | GENERAL
   legalName     String?
   email         String?
   phone         String?
@@ -111,11 +112,15 @@ model Product {
   slug        String
   sku         String
   description String?
-  gender      String   @default("UNISEX") // MEN | WOMEN | UNISEX | KIDS
+  gender      String   @default("UNISEX") // MEN | WOMEN | UNISEX | KIDS (clothing only)
   season      String?
   material    String?
+  brand       String?  // generic attribute (grocery/pharma/general)
+  unit        String?  // unit of measure, e.g. pcs, kg, box, strip
   costPrice   Int      @default(0) // BDT
   sellPrice   Int      @default(0) // BDT
+  targetStock Int      @default(0) // desired stock level (0 = not set); for restock planning
+  trackExpiry Boolean  @default(false) // enables batch/expiry tracking (Phase 2)
   imageUrl    String?
   status      String   @default("ACTIVE") // ACTIVE | ARCHIVED
   createdAt   DateTime @default(now())

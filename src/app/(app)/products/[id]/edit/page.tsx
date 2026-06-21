@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { getTenantProfile } from "@/lib/tenant";
 import { PageHeader } from "@/components/app/page-header";
 import { ProductForm } from "@/components/app/product-form";
 import { updateProduct } from "../../actions";
@@ -18,13 +19,14 @@ export default async function EditProductPage({
   const { tenantId } = session;
   const { id } = await params;
 
-  const [product, categories] = await Promise.all([
+  const [product, categories, biz] = await Promise.all([
     prisma.product.findFirst({ where: { id, tenantId } }),
     prisma.category.findMany({
       where: { tenantId },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+    getTenantProfile(tenantId),
   ]);
   if (!product) notFound();
 
@@ -43,6 +45,7 @@ export default async function EditProductPage({
         mode="edit"
         action={action}
         categories={categories}
+        businessType={biz?.businessType ?? "CLOTHING"}
         defaults={{
           name: product.name,
           sku: product.sku,
@@ -50,10 +53,13 @@ export default async function EditProductPage({
           gender: product.gender,
           material: product.material,
           season: product.season,
+          brand: product.brand,
+          unit: product.unit,
           description: product.description,
           imageUrl: product.imageUrl,
           costPrice: product.costPrice,
           sellPrice: product.sellPrice,
+          targetStock: product.targetStock,
           status: product.status,
         }}
       />

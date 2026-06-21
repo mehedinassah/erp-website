@@ -18,16 +18,19 @@ export const productSchema = z.object({
   gender: oneOf(GENDERS),
   material: optionalText,
   season: optionalText,
+  brand: optionalText,
+  unit: optionalText,
   description: optionalText,
   imageUrl: optionalText,
   costPrice: z.coerce.number().int().min(0),
   sellPrice: z.coerce.number().int().min(0),
+  targetStock: z.coerce.number().int().min(0).default(0),
   status: oneOf(PRODUCT_STATUSES).default("ACTIVE"),
 });
 
 export const variantInputSchema = z.object({
   size: z.string().trim().min(1),
-  color: z.string().trim().min(1),
+  color: z.string().trim().default(""), // empty allowed for single-axis / single-SKU products
   colorHex: z.string().trim().nullable().optional(),
 });
 
