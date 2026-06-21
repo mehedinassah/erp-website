@@ -72,7 +72,10 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/reset-password") ||
     path.startsWith("/contact") ||
     path.startsWith("/privacy") ||
-    path.startsWith("/terms");
+    path.startsWith("/terms") ||
+    // Metadata image routes (file conventions) — must be reachable by crawlers
+    path.startsWith("/opengraph-image") ||
+    path.startsWith("/twitter-image");
 
   // Entry routes a signed-in user should be bounced away from (login/signup).
   // Password reset is intentionally NOT here — a logged-in user must still be

@@ -75,7 +75,6 @@ export function NewQuoteForm({ customers, variants }: { customers: Customer[]; v
         <CardContent className="pt-6">
           <div className="space-y-3">
             {lines.map((line, i) => {
-              const variant = variants.find((v) => v.id === line.variantId);
               return (
                 <div key={i} className="grid grid-cols-[1fr_80px_100px_36px] items-end gap-2">
                   <Field>
