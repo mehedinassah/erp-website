@@ -1,6 +1,7 @@
 import { Building2, Users, CheckCircle2, Ban } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/superadmin";
+import { accessState } from "@/lib/subscription";
 import { formatDate } from "@/lib/format";
 import { PageHeader } from "@/components/app/page-header";
 import { StatCard } from "@/components/app/stat-card";
@@ -54,6 +55,7 @@ export default async function AdminPage() {
               <TH className="hidden md:table-cell text-center">Products</TH>
               <TH className="hidden md:table-cell text-center">Sales</TH>
               <TH className="hidden sm:table-cell">Joined</TH>
+              <TH className="text-center">Subscription</TH>
               <TH className="text-center">Status</TH>
               <TH className="text-right">Plan & actions</TH>
             </TR>
@@ -69,6 +71,27 @@ export default async function AdminPage() {
                 <TD className="hidden md:table-cell text-center tabular">{t._count.products}</TD>
                 <TD className="hidden md:table-cell text-center tabular">{t._count.salesOrders}</TD>
                 <TD className="hidden sm:table-cell text-muted-foreground">{formatDate(t.createdAt)}</TD>
+                <TD className="text-center">
+                  {(() => {
+                    const a = accessState(t);
+                    const tone = a.active ? (a.onTrial ? "warning" : "success") : "danger";
+                    const label = a.onTrial
+                      ? `Trial · ${a.daysLeft}d`
+                      : a.active
+                        ? `${a.planName} · ${a.daysLeft}d`
+                        : a.reason === "trial_expired"
+                          ? "Trial ended"
+                          : "Expired";
+                    return (
+                      <div className="flex flex-col items-center gap-0.5">
+                        <Badge tone={tone}>{label}</Badge>
+                        {t.currentPeriodEnd && !a.onTrial && (
+                          <span className="text-[10px] text-muted-foreground">until {formatDate(t.currentPeriodEnd)}</span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </TD>
                 <TD className="text-center">
                   <Badge tone={t.status === "ACTIVE" ? "success" : "danger"}>
                     {t.status === "ACTIVE" ? "Active" : "Suspended"}

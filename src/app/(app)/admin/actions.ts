@@ -4,9 +4,20 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/superadmin";
+import { extendPeriod } from "@/lib/billing";
+import { TRIAL_DAYS } from "@/lib/plans";
 import { slugify, type ActionState } from "@/lib/validation";
 
 const PLANS = ["TRIAL", "STARTER", "BUSINESS", "PRO"];
+
+/** Build the billing fields for a given plan (trial vs paid grant). */
+function planGrant(plan: string, existingPeriodEnd: Date | null) {
+  if (plan === "TRIAL") {
+    return { trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 86400000), currentPeriodEnd: null, status: "ACTIVE" };
+  }
+  // Paid plan: grant one month from the later of now / existing period end.
+  return { currentPeriodEnd: extendPeriod(existingPeriodEnd, 1), status: "ACTIVE" };
+}
 
 /**
  * Provision a brand-new business + its admin login directly from the panel
@@ -44,7 +55,7 @@ export async function createTenant(
   try {
     await prisma.$transaction(async (tx) => {
       const tenant = await tx.tenant.create({
-        data: { name: businessName, slug, plan, status: "ACTIVE" },
+        data: { name: businessName, slug, plan, ...planGrant(plan, null) },
       });
       await tx.user.create({
         data: { email, name, role: "ADMIN", tenantId: tenant.id, passwordHash },
@@ -76,10 +87,16 @@ export async function toggleTenantStatus(id: string) {
   revalidatePath("/admin");
 }
 
-/** Change a business's subscription plan. */
+/** Change a business's subscription plan — also grants the matching access
+ *  period so the change actually takes effect (trial window or paid period). */
 export async function setTenantPlan(id: string, plan: string) {
   await requireSuperAdmin();
   if (!PLANS.includes(plan)) return;
-  await prisma.tenant.update({ where: { id }, data: { plan } });
+  const t = await prisma.tenant.findUnique({ where: { id }, select: { currentPeriodEnd: true } });
+  await prisma.tenant.update({
+    where: { id },
+    data: { plan, ...planGrant(plan, t?.currentPeriodEnd ?? null) },
+  });
   revalidatePath("/admin");
+  revalidatePath("/billing");
 }
