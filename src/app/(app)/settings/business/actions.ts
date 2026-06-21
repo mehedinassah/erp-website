@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { BUSINESS_TYPES } from "@/lib/enums";
 import type { ActionState } from "@/lib/validation";
 
 const str = (fd: FormData, key: string) => {
@@ -24,7 +25,7 @@ export async function updateBusinessProfile(
   }
 
   const businessTypeRaw = String(formData.get("businessType") ?? "CLOTHING");
-  const businessType = ["CLOTHING", "GROCERY", "PHARMACY", "GENERAL"].includes(businessTypeRaw)
+  const businessType = (BUSINESS_TYPES as readonly string[]).includes(businessTypeRaw)
     ? businessTypeRaw
     : "CLOTHING";
   const taxRatePct = Math.min(100, Math.max(0, Math.trunc(Number(formData.get("taxRatePct")) || 0)));
