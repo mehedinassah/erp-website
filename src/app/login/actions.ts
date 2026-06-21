@@ -35,6 +35,7 @@ export async function loginAction(
     name: result.user.name,
     role: result.user.role,
     tenantId: result.user.tenantId,
+    sessionVersion: result.user.sessionVersion,
   });
   redirect("/dashboard");
 }

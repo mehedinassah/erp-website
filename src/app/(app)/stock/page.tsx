@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Search, Boxes, ArrowDownRight, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Boxes, ArrowDownRight, ArrowUpRight, CheckCircle2, ArrowLeftRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { canDelete } from "@/lib/permissions";
@@ -31,6 +31,7 @@ type SP = {
   low?: string;
   page?: string;
   recorded?: string;
+  transferred?: string;
 };
 
 export default async function StockPage({
@@ -103,6 +104,11 @@ export default async function StockPage({
         title="Stock control"
         description="Live stock levels by variant and warehouse. Record receipts, sales, and corrections."
       >
+        <Button asChild variant="outline">
+          <Link href="/stock/transfer">
+            <ArrowLeftRight className="size-4" /> Transfer
+          </Link>
+        </Button>
         <Button asChild variant="gold">
           <Link href="/stock/adjust">
             <Plus className="size-4" /> Record movement
@@ -117,6 +123,12 @@ export default async function StockPage({
         )}
       </PageHeader>
 
+      {sp.transferred && (
+        <div className="mb-4 flex items-center gap-2 rounded-md border border-success/25 bg-success/10 px-3 py-2.5 text-sm text-success animate-rise">
+          <CheckCircle2 className="size-4" />
+          Stock transferred successfully.
+        </div>
+      )}
       {sp.recorded && (
         <div className="mb-4 flex items-center gap-2 rounded-md border border-success/25 bg-success/10 px-3 py-2.5 text-sm text-success animate-rise">
           <CheckCircle2 className="size-4" />

@@ -31,7 +31,13 @@ export async function resetPassword(
   const passwordHash = await bcrypt.hash(password, 10);
   await prisma.user.update({
     where: { id: user.id },
-    data: { passwordHash, resetTokenHash: null, resetTokenExpiry: null },
+    data: {
+      passwordHash,
+      resetTokenHash: null,
+      resetTokenExpiry: null,
+      passwordChangedAt: new Date(),
+      sessionVersion: { increment: 1 }, // invalidates all existing sessions
+    },
   });
 
   return { ok: true };

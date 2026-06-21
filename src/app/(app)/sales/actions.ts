@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { checkAndAlertLowStock } from "@/lib/low-stock-alert";
+import { logAudit } from "@/lib/audit";
 import type { ActionState } from "@/lib/validation";
 
 type LineItem = { variantId: string; quantity: number; price: number };
@@ -132,6 +134,19 @@ export async function createSalesOrder(
       error: e instanceof Error ? e.message : "Could not complete the sale.",
     };
   }
+
+  // Fire low-stock alert after stock deduction (fire-and-forget)
+  checkAndAlertLowStock(session.tenantId);
+
+  await logAudit({
+    tenantId: session.tenantId,
+    userId: session.userId,
+    action: "CREATE",
+    entity: "SalesOrder",
+    entityId: id,
+    entityRef: orderNumber,
+    changes: { total, itemCount: lines.length },
+  });
 
   revalidatePath("/sales");
   revalidatePath("/stock");

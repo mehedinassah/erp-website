@@ -42,6 +42,13 @@ export async function changePassword(
     };
 
   const passwordHash = await bcrypt.hash(next, 10);
-  await prisma.user.update({ where: { id: session.userId }, data: { passwordHash } });
+  await prisma.user.update({
+    where: { id: session.userId },
+    data: {
+      passwordHash,
+      passwordChangedAt: new Date(),
+      sessionVersion: { increment: 1 }, // invalidates all other active sessions
+    },
+  });
   return { ok: true };
 }

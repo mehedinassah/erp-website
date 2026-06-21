@@ -11,6 +11,7 @@ export type SessionPayload = {
   name: string;
   role: string;
   tenantId: string;
+  sessionVersion: number;
 };
 
 function getSecret() {
@@ -38,6 +39,7 @@ export async function verifySession(
       name: String(payload.name),
       role: String(payload.role),
       tenantId: String(payload.tenantId),
+      sessionVersion: Number(payload.sessionVersion ?? 0),
     };
   } catch {
     return null;

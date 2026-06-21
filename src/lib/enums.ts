@@ -81,3 +81,31 @@ export const ROLE_LABEL: Record<Role, string> = {
   MANAGER: "Manager",
   STAFF: "Staff",
 };
+
+// ---- Payment status ----
+export const PAYMENT_STATUSES = ["UNPAID", "PARTIAL", "PAID"] as const;
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+
+export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
+  UNPAID: "Unpaid",
+  PARTIAL: "Partially paid",
+  PAID: "Paid",
+};
+
+// ---- Quotations ----
+export const QUOTE_STATUSES = [
+  "DRAFT",
+  "SENT",
+  "ACCEPTED",
+  "DECLINED",
+  "EXPIRED",
+] as const;
+export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
+
+export const QUOTE_STATUS_LABEL: Record<QuoteStatus, string> = {
+  DRAFT: "Draft",
+  SENT: "Sent",
+  ACCEPTED: "Accepted",
+  DECLINED: "Declined",
+  EXPIRED: "Expired",
+};

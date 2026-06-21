@@ -23,6 +23,7 @@ type Defaults = {
   material?: string | null;
   season?: string | null;
   description?: string | null;
+  imageUrl?: string | null;
   costPrice?: number;
   sellPrice?: number;
   status?: string;
@@ -149,6 +150,16 @@ export function ProductForm({
             )}
 
             <Field className="sm:col-span-2">
+              <Label htmlFor="imageUrl">Product image URL</Label>
+              <Input
+                id="imageUrl"
+                name="imageUrl"
+                type="url"
+                defaultValue={defaults.imageUrl ?? ""}
+                placeholder="https://example.com/product.jpg"
+              />
+            </Field>
+            <Field>
               <Label htmlFor="description">Description</Label>
               <Textarea id="description" name="description" defaultValue={defaults.description ?? ""} rows={3} />
             </Field>

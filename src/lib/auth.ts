@@ -17,10 +17,23 @@ export async function getSession(): Promise<SessionPayload | null> {
   return verifySession(token);
 }
 
-/** Use in protected layouts/pages. Redirects to /login when unauthenticated. */
+/** Use in protected layouts/pages. Redirects to /login when unauthenticated.
+ *  Also validates sessionVersion against the DB to catch post-password-change sessions. */
 export async function requireUser(): Promise<SessionPayload> {
   const session = await getSession();
   if (!session) redirect("/login");
+
+  // Check that the session version matches the current DB version.
+  // If the user changed their password since this JWT was issued, boot them out.
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { sessionVersion: true, active: true },
+  });
+  if (!user || !user.active || user.sessionVersion !== session.sessionVersion) {
+    await destroySession();
+    redirect("/login");
+  }
+
   return session;
 }
 
@@ -39,6 +52,7 @@ export async function createSession(user: {
   name: string;
   role: string;
   tenantId: string;
+  sessionVersion: number;
 }) {
   const token = await signSession({
     userId: user.id,
@@ -46,6 +60,7 @@ export async function createSession(user: {
     name: user.name,
     role: user.role,
     tenantId: user.tenantId,
+    sessionVersion: user.sessionVersion,
   });
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
@@ -63,7 +78,7 @@ export async function destroySession() {
 }
 
 type AuthResult =
-  | { ok: true; user: { id: string; email: string; name: string; role: string; tenantId: string } }
+  | { ok: true; user: { id: string; email: string; name: string; role: string; tenantId: string; sessionVersion: number } }
   | { ok: false; reason: "invalid" | "suspended" };
 
 export async function verifyCredentials(
@@ -80,6 +95,7 @@ export async function verifyCredentials(
       active: true,
       passwordHash: true,
       tenantId: true,
+      sessionVersion: true,
       tenant: { select: { status: true } },
     },
   });
@@ -107,6 +123,7 @@ export async function verifyCredentials(
       name: user.name,
       role: user.role,
       tenantId: user.tenantId,
+      sessionVersion: user.sessionVersion,
     },
   };
 }

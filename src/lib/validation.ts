@@ -19,6 +19,7 @@ export const productSchema = z.object({
   material: optionalText,
   season: optionalText,
   description: optionalText,
+  imageUrl: optionalText,
   costPrice: z.coerce.number().int().min(0),
   sellPrice: z.coerce.number().int().min(0),
   status: oneOf(PRODUCT_STATUSES).default("ACTIVE"),

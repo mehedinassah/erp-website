@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { MOVEMENT_TYPES, type MovementType } from "@/lib/enums";
+import { checkAndAlertLowStock } from "@/lib/low-stock-alert";
 import type { ActionState } from "@/lib/validation";
 
 export async function recordMovement(
@@ -71,6 +72,11 @@ export async function recordMovement(
     });
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Could not record the movement." };
+  }
+
+  // Fire low-stock email alert if stock went down
+  if (delta < 0) {
+    checkAndAlertLowStock(session.tenantId); // fire-and-forget
   }
 
   revalidatePath("/stock");

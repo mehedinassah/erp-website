@@ -35,24 +35,29 @@ model Tenant {
   purchaseOrders PurchaseOrder[]
   salesOrders    SalesOrder[]
   ledgerAccounts LedgerAccount[]
+  quotations     Quotation[]
+  salesReturns   SalesReturn[]
+  auditLogs      AuditLog[]
 }
 
 // ----------------------------------------------------------------------------
 // Auth
 // ----------------------------------------------------------------------------
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  role         String   @default("STAFF") // ADMIN | MANAGER | STAFF
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String
+  passwordHash    String
+  role            String   @default("STAFF") // ADMIN | MANAGER | STAFF
+  active          Boolean  @default(true)
+  sessionVersion  Int      @default(0)       // incremented on password change to invalidate old JWTs
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Password reset (forgot-password flow): SHA-256 hash of the emailed token.
   resetTokenHash   String?
   resetTokenExpiry DateTime?
+  passwordChangedAt DateTime? // set on every password change/reset
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id])
@@ -61,6 +66,9 @@ model User {
   purchaseOrders PurchaseOrder[]
   salesOrders    SalesOrder[]
   ledgerEntries  LedgerEntry[]
+  quotations     Quotation[]
+  salesReturns   SalesReturn[]
+  auditLogs      AuditLog[]
 
   @@index([tenantId])
 }
@@ -128,10 +136,12 @@ model Variant {
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  stockLevels    StockLevel[]
-  stockMovements StockMovement[]
-  poItems        POItem[]
-  soItems        SOItem[]
+  stockLevels     StockLevel[]
+  stockMovements  StockMovement[]
+  poItems         POItem[]
+  soItems         SOItem[]
+  quoteItems      QuoteItem[]
+  salesReturnItems SalesReturnItem[]
 
   @@unique([productId, size, color])
   @@index([productId])
@@ -155,6 +165,7 @@ model Warehouse {
   stockMovements StockMovement[]
   purchaseOrders PurchaseOrder[]
   salesOrders    SalesOrder[]
+  salesReturns   SalesReturn[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -175,10 +186,10 @@ model StockLevel {
 
 model StockMovement {
   id            String   @id @default(cuid())
-  type          String // PURCHASE_IN | SALE_OUT | ADJUSTMENT | TRANSFER_IN | TRANSFER_OUT
+  type          String // PURCHASE_IN | SALE_OUT | ADJUSTMENT | TRANSFER_IN | TRANSFER_OUT | RETURN_IN
   quantity      Int // signed: positive = in, negative = out
   reason        String?
-  referenceType String? // PURCHASE_ORDER | SALES_ORDER | MANUAL | TRANSFER
+  referenceType String? // PURCHASE_ORDER | SALES_ORDER | MANUAL | TRANSFER | RETURN
   referenceId   String?
   createdAt     DateTime @default(now())
 
@@ -275,22 +286,25 @@ model Customer {
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
   salesOrders SalesOrder[]
+  quotations  Quotation[]
 
   @@index([tenantId])
 }
 
 model SalesOrder {
-  id          String   @id @default(cuid())
-  orderNumber String
-  status      String   @default("DRAFT") // DRAFT | CONFIRMED | FULFILLED | CANCELLED
-  orderDate   DateTime @default(now())
-  subtotal    Int      @default(0)
-  discount    Int      @default(0)
-  tax         Int      @default(0)
-  total       Int      @default(0)
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  orderNumber   String
+  status        String   @default("DRAFT")  // DRAFT | CONFIRMED | FULFILLED | CANCELLED
+  paymentStatus String   @default("UNPAID") // UNPAID | PARTIAL | PAID
+  amountPaid    Int      @default(0)
+  orderDate     DateTime @default(now())
+  subtotal      Int      @default(0)
+  discount      Int      @default(0)
+  tax           Int      @default(0)
+  total         Int      @default(0)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   tenantId    String
   tenant      Tenant    @relation(fields: [tenantId], references: [id])
@@ -303,7 +317,8 @@ model SalesOrder {
   warehouse Warehouse  @relation(fields: [warehouseId], references: [id])
   user      User?      @relation(fields: [userId], references: [id])
 
-  items SOItem[]
+  items       SOItem[]
+  salesReturns SalesReturn[]
 
   @@unique([tenantId, orderNumber])
   @@index([tenantId])
@@ -324,6 +339,93 @@ model SOItem {
   variant    Variant    @relation(fields: [variantId], references: [id])
 
   @@index([salesOrderId])
+}
+
+// ----------------------------------------------------------------------------
+// Quotations
+// ----------------------------------------------------------------------------
+model Quotation {
+  id          String    @id @default(cuid())
+  quoteNumber String
+  status      String    @default("DRAFT") // DRAFT | SENT | ACCEPTED | DECLINED | EXPIRED
+  quoteDate   DateTime  @default(now())
+  validUntil  DateTime?
+  subtotal    Int       @default(0)
+  discount    Int       @default(0)
+  total       Int       @default(0)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id])
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id])
+
+  items QuoteItem[]
+
+  @@unique([tenantId, quoteNumber])
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model QuoteItem {
+  id          String @id @default(cuid())
+  quantity    Int
+  unitPrice   Int // BDT
+
+  quotationId String
+  variantId   String
+
+  quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  variant   Variant   @relation(fields: [variantId], references: [id])
+
+  @@index([quotationId])
+}
+
+// ----------------------------------------------------------------------------
+// Sales Returns
+// ----------------------------------------------------------------------------
+model SalesReturn {
+  id           String   @id @default(cuid())
+  returnNumber String
+  reason       String?
+  notes        String?
+  totalAmount  Int      @default(0) // BDT — total value of items returned
+  createdAt    DateTime @default(now())
+
+  tenantId     String
+  salesOrderId String
+  warehouseId  String
+  userId       String?
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id])
+  salesOrder SalesOrder @relation(fields: [salesOrderId], references: [id])
+  warehouse  Warehouse  @relation(fields: [warehouseId], references: [id])
+  user       User?      @relation(fields: [userId], references: [id])
+
+  items SalesReturnItem[]
+
+  @@unique([tenantId, returnNumber])
+  @@index([tenantId])
+  @@index([salesOrderId])
+}
+
+model SalesReturnItem {
+  id        String @id @default(cuid())
+  quantity  Int
+  unitPrice Int // BDT — at original sale price
+
+  salesReturnId String
+  variantId     String
+
+  salesReturn SalesReturn @relation(fields: [salesReturnId], references: [id], onDelete: Cascade)
+  variant     Variant     @relation(fields: [variantId], references: [id])
+
+  @@index([salesReturnId])
 }
 
 // ----------------------------------------------------------------------------
@@ -371,4 +473,27 @@ model LedgerEntry {
 
   @@index([ledgerId])
   @@index([occurredAt])
+}
+
+// ----------------------------------------------------------------------------
+// Audit Log
+// ----------------------------------------------------------------------------
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // CREATE | UPDATE | DELETE
+  entity    String   // SalesOrder | PurchaseOrder | Product | StockMovement | etc.
+  entityId  String
+  entityRef String?  // human-readable reference e.g. SO-2025-0001
+  changes   String?  // JSON string of what changed (key/value pairs)
+  createdAt DateTime @default(now())
+
+  tenantId String
+  userId   String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, entity])
+  @@index([createdAt])
 }

@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { CheckCircle2 } from "lucide-react";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
   title: "Sign in · PERICO ERP",
 };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ registered?: string; from?: string }>;
+}) {
+  const sp = await searchParams;
   return (
     <main className="relative flex min-h-dvh">
 
@@ -168,6 +174,13 @@ export default function LoginPage() {
           <p className="mb-7 mt-1 text-sm text-muted-foreground">
             Sign in to your workspace.
           </p>
+
+          {sp.registered && (
+            <div role="status" className="mb-5 flex items-center gap-2 rounded-md border border-success/25 bg-success/10 px-3 py-2.5 text-sm text-success">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Account created! Sign in below to get started.
+            </div>
+          )}
 
           <LoginForm />
 

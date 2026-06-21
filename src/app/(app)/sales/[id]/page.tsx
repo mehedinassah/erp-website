@@ -1,17 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, RotateCcw } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { canDelete } from "@/lib/permissions";
+import { canDelete, canManageLedger } from "@/lib/permissions";
 import { formatBDT, formatDate } from "@/lib/format";
-import { SO_STATUS_LABEL, type SalesOrderStatus } from "@/lib/enums";
+import {
+  SO_STATUS_LABEL, type SalesOrderStatus,
+  PAYMENT_STATUS_LABEL, type PaymentStatus,
+} from "@/lib/enums";
 import { Card } from "@/components/ui/card";
 import { Badge, statusTone } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { PrintButton } from "@/components/app/print-button";
 import { DeleteButton } from "@/components/ui/delete-button";
+import { RecordPaymentForm } from "@/components/app/record-payment-form";
 import { deleteSalesOrder } from "../actions";
+
+const paymentTone = (s: string) =>
+  s === "PAID" ? "success" : s === "PARTIAL" ? "warning" : "danger";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +38,7 @@ export default async function SalesOrderInvoicePage({
       warehouse: true,
       user: true,
       items: { include: { variant: { include: { product: true } } } },
+      salesReturns: { include: { items: true } },
     },
   });
   if (!order) notFound();
@@ -45,6 +54,13 @@ export default async function SalesOrderInvoicePage({
           <ChevronLeft className="size-4" /> Sales orders
         </Link>
         <div className="flex items-center gap-2">
+          {order.status === "FULFILLED" && (
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/sales/${order.id}/return`}>
+                <RotateCcw className="size-4" /> Return
+              </Link>
+            </Button>
+          )}
           {canDelete(session.role) && (
             <DeleteButton
               entity="sale"
@@ -83,9 +99,12 @@ export default async function SalesOrderInvoicePage({
             <p className="tabular text-sm text-muted-foreground">
               {order.orderNumber}
             </p>
-            <div className="mt-1 flex justify-end">
+            <div className="mt-1 flex justify-end gap-2">
               <Badge tone={statusTone(order.status)}>
                 {SO_STATUS_LABEL[order.status as SalesOrderStatus] ?? order.status}
+              </Badge>
+              <Badge tone={paymentTone(order.paymentStatus)}>
+                {PAYMENT_STATUS_LABEL[order.paymentStatus as PaymentStatus] ?? order.paymentStatus}
               </Badge>
             </div>
           </div>
@@ -188,6 +207,53 @@ export default async function SalesOrderInvoicePage({
               Notes
             </p>
             <p className="mt-1 text-sm text-muted-foreground">{order.notes}</p>
+          </div>
+        )}
+
+        {/* Payment panel */}
+        {canManageLedger(session.role) && order.status === "FULFILLED" && (
+          <div className="hairline mt-7 pt-5 print:hidden">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Payment
+            </p>
+            <div className="mb-4 grid grid-cols-3 gap-3 text-sm">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="tabular mt-0.5 font-semibold">{formatBDT(order.total)}</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">Paid</p>
+                <p className="tabular mt-0.5 font-semibold text-success">{formatBDT(order.amountPaid)}</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">Outstanding</p>
+                <p className="tabular mt-0.5 font-semibold text-destructive">
+                  {formatBDT(Math.max(0, order.total - order.amountPaid))}
+                </p>
+              </div>
+            </div>
+            <RecordPaymentForm
+              orderId={order.id}
+              outstanding={Math.max(0, order.total - order.amountPaid)}
+            />
+          </div>
+        )}
+
+        {/* Returns */}
+        {order.salesReturns.length > 0 && (
+          <div className="hairline mt-7 pt-5 print:hidden">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Returns ({order.salesReturns.length})
+            </p>
+            <div className="space-y-2">
+              {order.salesReturns.map((r) => (
+                <div key={r.id} className="flex items-center justify-between rounded-lg border border-border px-4 py-3 text-sm">
+                  <span className="font-medium">{r.returnNumber}</span>
+                  <span className="tabular text-destructive">−{formatBDT(r.totalAmount)}</span>
+                  <span className="text-xs text-muted-foreground">{formatDate(r.createdAt)}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

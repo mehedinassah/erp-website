@@ -1,11 +1,68 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/session";
 
+// --------------------------------------------------------------------------
+// Simple in-memory rate limiter (per edge instance).
+// Works across typical serverless deployments for brute-force protection.
+// --------------------------------------------------------------------------
+type RateEntry = { count: number; resetAt: number };
+const _rl = new Map<string, RateEntry>();
+
+function isRateLimited(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = _rl.get(key);
+  if (!entry || entry.resetAt < now) {
+    _rl.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+  if (entry.count >= limit) return true;
+  entry.count++;
+  return false;
+}
+
+function rateLimitedResponse(retryAfterSec: number) {
+  return new NextResponse(
+    JSON.stringify({ error: "Too many requests. Please wait before trying again." }),
+    {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        "Retry-After": String(retryAfterSec),
+        "X-RateLimit-Limit": "Too many requests",
+      },
+    },
+  );
+}
+
 // Next.js 16 renamed the "middleware" convention to "proxy".
 export async function proxy(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await verifySession(token) : null;
   const path = req.nextUrl.pathname;
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown";
+
+  // --- Rate limiting for auth endpoints ---
+  if (req.method === "POST") {
+    if (path.startsWith("/login")) {
+      // 15 attempts per IP per 10 minutes
+      if (isRateLimited(`login:${ip}`, 15, 10 * 60 * 1000)) {
+        return rateLimitedResponse(600);
+      }
+    } else if (path.startsWith("/signup")) {
+      // 5 signups per IP per hour
+      if (isRateLimited(`signup:${ip}`, 5, 60 * 60 * 1000)) {
+        return rateLimitedResponse(3600);
+      }
+    } else if (path.startsWith("/forgot-password")) {
+      // 3 reset requests per IP per 15 minutes
+      if (isRateLimited(`forgot:${ip}`, 3, 15 * 60 * 1000)) {
+        return rateLimitedResponse(900);
+      }
+    }
+  }
   // Public routes that don't require a session.
   const isPublicRoute =
     path === "/" || // marketing landing page

@@ -14,7 +14,11 @@ import {
   Wallet,
   ArrowDownLeft,
   ArrowUpRight,
+  ArrowLeftRight,
   UserCog,
+  FileText,
+  RotateCcw,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -48,6 +52,7 @@ export const NAV: NavSection[] = [
     section: "Inventory",
     items: [
       { href: "/stock", label: "Stock control", icon: Boxes },
+      { href: "/stock/transfer", label: "Transfer stock", icon: ArrowLeftRight, managerOnly: true },
       { href: "/warehouses", label: "Warehouses", icon: Warehouse },
     ],
   },
@@ -63,6 +68,7 @@ export const NAV: NavSection[] = [
     items: [
       { href: "/pos", label: "Point of sale", icon: ScanLine },
       { href: "/sales", label: "Sales orders", icon: Receipt },
+      { href: "/quotes", label: "Quotations", icon: FileText, managerOnly: true },
       { href: "/customers", label: "Customers", icon: Users },
     ],
   },
@@ -79,6 +85,7 @@ export const NAV: NavSection[] = [
     items: [
       { href: "/settings/users", label: "Users & access", icon: UserCog, adminOnly: true },
       { href: "/settings", label: "Settings", icon: Settings, adminOnly: true },
+      { href: "/admin/audit", label: "Audit log", icon: ShieldCheck, adminOnly: true },
     ],
   },
 ];
