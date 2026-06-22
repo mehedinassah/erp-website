@@ -10,6 +10,7 @@ export type PlanDef = {
   price: number; // BDT / month
   warehouses: number; // Infinity = unlimited
   users: number;
+  aiSupport: boolean; // AI Customer-Support widget (Helpdeck) — PRO only
   features: string[];
 };
 
@@ -20,6 +21,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
     price: 0,
     warehouses: 3,
     users: 5,
+    aiSupport: false,
     features: ["Full access during trial"],
   },
   STARTER: {
@@ -28,6 +30,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
     price: 1500,
     warehouses: 1,
     users: 2,
+    aiSupport: false,
     features: ["1 warehouse", "2 users", "Inventory + POS", "Dena–Paona ledger"],
   },
   BUSINESS: {
@@ -36,6 +39,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
     price: 3500,
     warehouses: 3,
     users: 5,
+    aiSupport: false,
     features: ["3 warehouses", "5 users", "Everything in Starter", "Profit reports", "Bulk import"],
   },
   PRO: {
@@ -44,7 +48,14 @@ export const PLANS: Record<PlanId, PlanDef> = {
     price: 6000,
     warehouses: Infinity,
     users: Infinity,
-    features: ["Unlimited warehouses", "Unlimited users", "Everything in Business", "Priority support"],
+    aiSupport: true,
+    features: [
+      "Unlimited warehouses",
+      "Unlimited users",
+      "Everything in Business",
+      "AI Customer-Support widget",
+      "Priority support",
+    ],
   },
 };
 
@@ -60,4 +71,9 @@ export function planLimits(plan: string): { warehouses: number; users: number } 
 
 export function formatLimit(n: number): string {
   return n === Infinity ? "Unlimited" : String(n);
+}
+
+/** Whether a plan includes the AI Customer-Support widget (Helpdeck). */
+export function planHasAISupport(plan: string): boolean {
+  return PLANS[(plan as PlanId)]?.aiSupport ?? false;
 }

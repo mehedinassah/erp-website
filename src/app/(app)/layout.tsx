@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/superadmin";
 import { prisma } from "@/lib/prisma";
 import { accessState } from "@/lib/subscription";
+import { planHasAISupport } from "@/lib/plans";
 import { AppShell } from "@/components/app/app-shell";
 
 export default async function AppLayout({
@@ -28,6 +29,7 @@ export default async function AppLayout({
       }}
       businessType={tenant?.businessType ?? "CLOTHING"}
       isSuperAdmin={superAdmin}
+      aiSupport={planHasAISupport(tenant?.plan ?? "TRIAL")}
       access={{
         // Super-admins (platform owner) are never locked out.
         locked: !superAdmin && !access.active,

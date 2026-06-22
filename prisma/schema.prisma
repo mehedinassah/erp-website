@@ -26,6 +26,10 @@ model Tenant {
   trialEndsAt      DateTime?              // end of free trial (set at signup)
   currentPeriodEnd DateTime?              // end of current paid subscription period
 
+  // AI Customer-Support (Helpdeck) — provisioned for PRO tenants
+  helpdeckTenantId String?                // Helpdeck tenant id
+  helpdeckApiKey   String?                // Helpdeck API key (server-side only, never sent to browser)
+
   // Business profile — appears on invoices, quotations & purchase orders
   businessType  String   @default("CLOTHING") // CLOTHING | GROCERY | PHARMACY | GENERAL
   legalName     String?

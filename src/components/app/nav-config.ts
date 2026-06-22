@@ -25,6 +25,7 @@ import {
   Sparkles,
   ClipboardCheck,
   CreditCard,
+  Bot,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,6 +36,7 @@ export type NavItem = {
   adminOnly?: boolean;
   managerOnly?: boolean; // visible to ADMIN + MANAGER only (hidden from STAFF)
   businessTypes?: string[]; // if set, only show for these tenant business types
+  proOnly?: boolean; // only show when the tenant's plan includes AI Support (PRO)
 };
 
 export type NavSection = {
@@ -95,6 +97,12 @@ export const NAV: NavSection[] = [
     items: [
       { href: "/expenses", label: "Expenses", icon: Wallet2, managerOnly: true },
       { href: "/reports/pnl", label: "Profit & Loss", icon: LineChart, managerOnly: true },
+    ],
+  },
+  {
+    section: "AI Customer Support",
+    items: [
+      { href: "/ai-support", label: "AI Support widget", icon: Bot, adminOnly: true, proOnly: true },
     ],
   },
   {

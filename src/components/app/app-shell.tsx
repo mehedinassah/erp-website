@@ -40,11 +40,13 @@ function NavLinks({
   role,
   businessType,
   isSuperAdmin = false,
+  aiSupport = false,
   onNavigate,
 }: {
   role: string;
   businessType: string;
   isSuperAdmin?: boolean;
+  aiSupport?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
@@ -58,7 +60,8 @@ function NavLinks({
       (it) =>
         (!it.adminOnly || role === "ADMIN") &&
         (!it.managerOnly || role === "ADMIN" || role === "MANAGER") &&
-        (!it.businessTypes || it.businessTypes.includes(businessType)),
+        (!it.businessTypes || it.businessTypes.includes(businessType)) &&
+        (!it.proOnly || aiSupport),
     ),
   })).filter((g) => g.items.length > 0);
   // Platform-owner-only section (controlled by SUPER_ADMIN_EMAILS, not roles).
@@ -266,12 +269,14 @@ export function AppShell({
   session,
   businessType = "CLOTHING",
   isSuperAdmin = false,
+  aiSupport = false,
   access,
   children,
 }: {
   session: Session;
   businessType?: string;
   isSuperAdmin?: boolean;
+  aiSupport?: boolean;
   access?: Access;
   children: React.ReactNode;
 }) {
@@ -283,7 +288,7 @@ export function AppShell({
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-surface lg:flex print:hidden">
         <Brand />
-        <NavLinks role={session.role} businessType={businessType} isSuperAdmin={isSuperAdmin} />
+        <NavLinks role={session.role} businessType={businessType} isSuperAdmin={isSuperAdmin} aiSupport={aiSupport} />
         <div className="hairline p-3 text-[0.65rem] text-muted-foreground">
           PERICO ERP · v0.1
         </div>
@@ -317,7 +322,7 @@ export function AppShell({
               <X className="size-5" />
             </button>
           </div>
-          <NavLinks role={session.role} businessType={businessType} isSuperAdmin={isSuperAdmin} onNavigate={() => setMobileOpen(false)} />
+          <NavLinks role={session.role} businessType={businessType} isSuperAdmin={isSuperAdmin} aiSupport={aiSupport} onNavigate={() => setMobileOpen(false)} />
           {/* Footer: account + theme toggle + logout */}
           <div className="hairline space-y-0.5 p-3">
             <Link
