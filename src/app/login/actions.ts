@@ -18,7 +18,15 @@ export async function loginAction(
     return { error: "Enter a valid email and password." };
   }
 
-  const result = await verifyCredentials(email, password);
+  let result: Awaited<ReturnType<typeof verifyCredentials>>;
+  try {
+    result = await verifyCredentials(email, password);
+  } catch {
+    return {
+      error:
+        "Sign-in is temporarily unavailable. Please try again in a moment.",
+    };
+  }
   if (!result.ok) {
     if (result.reason === "suspended") {
       return {
@@ -29,13 +37,20 @@ export async function loginAction(
     return { error: "Invalid email or password." };
   }
 
-  await createSession({
-    id: result.user.id,
-    email: result.user.email,
-    name: result.user.name,
-    role: result.user.role,
-    tenantId: result.user.tenantId,
-    sessionVersion: result.user.sessionVersion,
-  });
+  try {
+    await createSession({
+      id: result.user.id,
+      email: result.user.email,
+      name: result.user.name,
+      role: result.user.role,
+      tenantId: result.user.tenantId,
+      sessionVersion: result.user.sessionVersion,
+    });
+  } catch {
+    return {
+      error:
+        "Sign-in is temporarily unavailable. Please try again in a moment.",
+    };
+  }
   redirect("/dashboard");
 }
