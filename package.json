@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "prisma db push --skip-generate --accept-data-loss",
+    "postbuild": "node -e \"console.log('Migrations will run on first app request')\"",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
