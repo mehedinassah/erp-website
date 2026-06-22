@@ -6,6 +6,7 @@ import {
   ArrowRight, Check, ShieldCheck, Smartphone,
   TrendingUp, UserPlus, PackagePlus, Rocket, Star, Quote,
   Shirt, Factory, Pill, ShoppingCart, Gem,
+  Bot, Sparkles,
 } from "lucide-react";
 import SiteFooter from "@/components/marketing/site-footer";
 
@@ -184,6 +185,7 @@ export default function LandingPage() {
             <Image src="/perico-dark.png" alt="PERICO" fill className="hidden object-contain object-left dark:block" priority />
           </div>
           <div className="flex items-center gap-2">
+            <Link href="#services" className="hidden rounded-md px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground sm:inline-block">Services</Link>
             <Link href="/login" className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">Sign in</Link>
             <Link href="/signup" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">Start free</Link>
           </div>
@@ -307,6 +309,50 @@ export default function LandingPage() {
           <p className="mt-6 text-sm text-muted-foreground">
             Built in Dhaka 🇧🇩 — for local shops, wholesalers, and growing businesses.
           </p>
+        </div>
+      </section>
+
+      {/* Our Services */}
+      <section id="services" className="scroll-mt-20 border-y border-border bg-surface/50 py-20">
+        <div className="mx-auto max-w-6xl px-5">
+          <div className="mb-12 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Our services</p>
+            <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">One platform, more than one tool</h2>
+            <p className="mx-auto mt-2 max-w-xl text-muted-foreground">Start with the ERP that runs your shop, then switch on powerful add-ons as you grow.</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            {/* ERP */}
+            <div className="group flex flex-col rounded-xl border border-border bg-card p-7 transition-all hover:-translate-y-1 hover:shadow-lg">
+              <span className="grid size-12 place-items-center rounded-xl bg-accent-soft text-accent transition-transform group-hover:scale-110"><Boxes className="size-6" /></span>
+              <h3 className="mt-4 font-display text-xl font-semibold">Inventory &amp; POS ERP</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                The core PERICO platform — inventory, barcode POS, sales, purchasing, and দেনা-পাওনা ledger. Everything to run your shop from one app.
+              </p>
+              <div className="mt-5 flex items-center justify-between">
+                <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">Core platform</span>
+                <Link href="/signup" className="inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline">
+                  Start free <ArrowRight className="size-4" />
+                </Link>
+              </div>
+            </div>
+            {/* AI Customer Support */}
+            <div className="group relative flex flex-col rounded-xl border border-accent/40 bg-card p-7 transition-all hover:-translate-y-1 hover:shadow-lg">
+              <span className="absolute -top-3 left-7 inline-flex items-center gap-1 rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
+                <Sparkles className="size-3 fill-current" /> New
+              </span>
+              <span className="grid size-12 place-items-center rounded-xl bg-accent-soft text-accent transition-transform group-hover:scale-110"><Bot className="size-6" /></span>
+              <h3 className="mt-4 font-display text-xl font-semibold">AI Customer Support</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                An AI chat widget for your website that answers customers from your own documents — 24/7. Included in the Pro plan, or available standalone.
+              </p>
+              <div className="mt-5 flex items-center justify-between">
+                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">Pro add-on · or standalone</span>
+                <Link href="/services/ai-support" className="inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline">
+                  Learn more <ArrowRight className="size-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

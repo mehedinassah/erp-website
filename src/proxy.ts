@@ -66,6 +66,7 @@ export async function proxy(req: NextRequest) {
   // Public routes that don't require a session.
   const isPublicRoute =
     path === "/" || // marketing landing page
+    path.startsWith("/services") || // public marketing pages (e.g. AI Support)
     path.startsWith("/login") ||
     path.startsWith("/signup") ||
     path.startsWith("/forgot-password") ||
