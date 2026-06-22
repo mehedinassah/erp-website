@@ -4,7 +4,7 @@ import { Bot, Sparkles, Lock, MessageSquareText, FileText, Zap } from "lucide-re
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { planHasAISupport, PLANS } from "@/lib/plans";
-import { listDocuments, getUsage, helpdeckPublicUrl, type HelpdeckDocument, type HelpdeckUsage } from "@/lib/helpdeck";
+import { listDocuments, getUsage, getMe, helpdeckPublicUrl, type HelpdeckDocument, type HelpdeckUsage } from "@/lib/helpdeck";
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,11 @@ import { EnableAISupportButton } from "@/components/app/ai-support-enable";
 
 export const dynamic = "force-dynamic";
 
-function buildSnippet(apiKey: string, name: string): string {
+function buildSnippet(widgetKey: string, name: string): string {
   const url = helpdeckPublicUrl();
   return `<script
   src="${url}/widget/widget.js"
-  data-api-key="${apiKey}"
+  data-widget-key="${widgetKey}"
   data-api-url="${url}"
   data-title="${name} Support"
   data-accent="#4f46e5">
@@ -115,12 +115,17 @@ export default async function AISupportPage() {
     messages_used: 0,
     messages_remaining: 2000,
   };
+  let widgetKey = "";
   let loadError: string | null = null;
   try {
-    [documents, usage] = await Promise.all([
+    const [docs, use, me] = await Promise.all([
       listDocuments(tenant.helpdeckApiKey),
       getUsage(tenant.helpdeckApiKey),
+      getMe(tenant.helpdeckApiKey),
     ]);
+    documents = docs;
+    usage = use;
+    widgetKey = me.widget_key ?? "";
   } catch (e) {
     loadError = (e as Error).message;
   }
@@ -136,7 +141,7 @@ export default async function AISupportPage() {
       <AiSupportManager
         documents={documents}
         usage={usage}
-        snippet={buildSnippet(tenant.helpdeckApiKey, tenant.name)}
+        snippet={buildSnippet(widgetKey, tenant.name)}
       />
     </div>
   );

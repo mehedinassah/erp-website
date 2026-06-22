@@ -17,6 +17,7 @@ export type HelpdeckTenant = {
   id: string;
   name: string;
   api_key: string;
+  widget_key: string | null;
   plan: string;
   message_limit: number;
   source: string;
@@ -107,6 +108,14 @@ export async function deleteDocument(apiKey: string, id: string): Promise<void> 
     cache: "no-store",
   });
   await parse<unknown>(res, "deleteDocument");
+}
+
+export async function getMe(apiKey: string): Promise<HelpdeckTenant> {
+  const res = await fetch(`${BASE}/api/me`, {
+    headers: authHeaders(apiKey),
+    cache: "no-store",
+  });
+  return parse<HelpdeckTenant>(res, "getMe");
 }
 
 export async function getUsage(apiKey: string): Promise<HelpdeckUsage> {
