@@ -50,28 +50,45 @@ const PERIODS = [
 async function getData(tenantId: string, days: number) {
   const since = days > 0 ? new Date(Date.now() - days * DAY) : new Date(0);
 
-  const [productCount, variantCount, stockLevels, orders, returns] = await Promise.all([
-    prisma.product.count({ where: { tenantId, status: "ACTIVE" } }),
-    prisma.variant.count({ where: { product: { tenantId } } }),
-    prisma.stockLevel.findMany({
-      where: { variant: { product: { tenantId } } },
-      include: { variant: { include: { product: { include: { category: true } } } } },
-    }),
-    prisma.salesOrder.findMany({
-      where: { tenantId, status: "FULFILLED", orderDate: { gte: since } },
-      orderBy: { orderDate: "asc" },
-      include: {
-        customer: true,
-        items: { include: { variant: { include: { product: { include: { category: true } } } } } },
-      },
-    }),
-    prisma.salesReturn.findMany({
-      where: { tenantId, createdAt: { gte: since } },
-      include: {
-        items: { include: { variant: { include: { product: { include: { category: true } } } } } },
-      },
-    }),
-  ]);
+  let productCount = 0;
+  let variantCount = 0;
+  let stockLevels: any[] = [];
+  let orders: any[] = [];
+  let returns: any[] = [];
+
+  try {
+    const results = await Promise.all([
+      prisma.product.count({ where: { tenantId, status: "ACTIVE" } }),
+      prisma.variant.count({ where: { product: { tenantId } } }),
+      prisma.stockLevel.findMany({
+        where: { variant: { product: { tenantId } } },
+        include: { variant: { include: { product: { include: { category: true } } } } },
+      }),
+      prisma.salesOrder.findMany({
+        where: { tenantId, status: "FULFILLED", orderDate: { gte: since } },
+        orderBy: { orderDate: "asc" },
+        include: {
+          customer: true,
+          items: { include: { variant: { include: { product: { include: { category: true } } } } } },
+        },
+      }),
+      prisma.salesReturn.findMany({
+        where: { tenantId, createdAt: { gte: since } },
+        include: {
+          items: { include: { variant: { include: { product: { include: { category: true } } } } } },
+        },
+      }),
+    ]);
+    
+    productCount = results[0];
+    variantCount = results[1];
+    stockLevels = results[2];
+    orders = results[3];
+    returns = results[4];
+  } catch (error) {
+    // Tables may not exist yet - continue with empty data
+    console.warn("Dashboard query failed (tables may not exist):", error instanceof Error ? error.message : error);
+  }
 
   // Inventory value + per-variant totals (for low stock)
   let invCost = 0;
