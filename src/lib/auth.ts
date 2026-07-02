@@ -20,21 +20,28 @@ export async function getSession(): Promise<SessionPayload | null> {
 /** Use in protected layouts/pages. Redirects to /login when unauthenticated.
  *  Also validates sessionVersion against the DB to catch post-password-change sessions. */
 export async function requireUser(): Promise<SessionPayload> {
-  const session = await getSession();
-  if (!session) redirect("/login");
+  try {
+    const session = await getSession();
+    if (!session) redirect("/login");
 
-  // Check that the session version matches the current DB version.
-  // If the user changed their password since this JWT was issued, boot them out.
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { sessionVersion: true, active: true },
-  });
-  if (!user || !user.active || user.sessionVersion !== session.sessionVersion) {
+    // Check that the session version matches the current DB version.
+    // If the user changed their password since this JWT was issued, boot them out.
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { sessionVersion: true, active: true },
+    });
+    if (!user || !user.active || user.sessionVersion !== session.sessionVersion) {
+      await destroySession();
+      redirect("/login");
+    }
+
+    return session;
+  } catch {
+    // Any failure here (incl. a database outage) must not crash the whole app
+    // with a cryptic error screen — send the user to a clean sign-in page.
     await destroySession();
     redirect("/login");
   }
-
-  return session;
 }
 
 /** Gate a page/action to specific roles. Redirects to dashboard if not allowed. */
@@ -85,20 +92,27 @@ export async function verifyCredentials(
   email: string,
   password: string,
 ): Promise<AuthResult> {
-  const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase().trim() },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      active: true,
-      passwordHash: true,
-      tenantId: true,
-      sessionVersion: true,
-      tenant: { select: { status: true } },
-    },
-  });
+  let user;
+  try {
+    user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase().trim() },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        active: true,
+        passwordHash: true,
+        tenantId: true,
+        sessionVersion: true,
+        tenant: { select: { status: true } },
+      },
+    });
+  } catch {
+    // Database unreachable / query failed — treat as a failed sign-in rather
+    // than throwing an uncaught 500. The action layer shows a friendly message.
+    throw new Error("AUTH_DB_UNAVAILABLE");
+  }
   if (!user || !user.active) return { ok: false, reason: "invalid" };
 
   const passwordOk = await bcrypt.compare(password, user.passwordHash);
@@ -112,7 +126,7 @@ export async function verifyCredentials(
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
   const isSuper = superAdmins.includes(user.email.toLowerCase());
-  if (user.tenant.status === "SUSPENDED" && !isSuper)
+  if (!user.tenant || (user.tenant.status === "SUSPENDED" && !isSuper))
     return { ok: false, reason: "suspended" };
 
   return {
