@@ -6,12 +6,11 @@ import {
   Zap, Globe, ShieldCheck, Code2,
 } from "lucide-react";
 import SiteFooter from "@/components/marketing/site-footer";
-import { PLANS } from "@/lib/plans";
 
 export const metadata: Metadata = {
-  title: "AI Customer Support — PERICO",
+  title: "Helpdesk — AI Customer Support for your website",
   description:
-    "Add an AI chat widget to your website that answers customers from your own documents, 24/7. Included in PERICO Pro, or available standalone worldwide.",
+    "Helpdesk is a standalone AI chat widget for your website that answers your customers from your own documents, 24/7. A separate product from PERICO ERP.",
 };
 
 const FEATURES = [
@@ -99,7 +98,7 @@ export default function AISupportMarketingPage() {
               <Link href="#pricing" className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-transform hover:scale-[1.03]">
                 See pricing <ArrowRight className="size-4" />
               </Link>
-              <Link href="/signup" className="rounded-lg border border-border px-6 py-3 text-sm font-semibold transition-colors hover:bg-muted">Start free trial</Link>
+              <Link href="/contact" className="rounded-lg border border-border px-6 py-3 text-sm font-semibold transition-colors hover:bg-muted">Contact us</Link>
             </div>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground lg:justify-start">
               <span className="flex items-center gap-1"><Check className="size-3.5 text-success" /> No code</span>
@@ -156,24 +155,24 @@ export default function AISupportMarketingPage() {
             <p className="mx-auto mt-2 max-w-xl text-muted-foreground">Already using PERICO? It&apos;s included in Pro. Just want the AI widget? Get it standalone.</p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
-            {/* Bundled with Pro */}
+            {/* Beta / early access */}
             <div className="relative flex flex-col rounded-xl border border-accent shadow-lg lg:scale-[1.02] bg-card p-7">
               <span className="absolute -top-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
-                <Sparkles className="size-3 fill-current" /> Best value
+                <Sparkles className="size-3 fill-current" /> Early access
               </span>
-              <h3 className="font-display text-lg font-semibold">With PERICO {PLANS.PRO.name}</h3>
+              <h3 className="font-display text-lg font-semibold">Free during beta</h3>
               <p className="mt-2">
-                <span className="font-display text-3xl font-semibold">৳{PLANS.PRO.price}</span>
+                <span className="font-display text-3xl font-semibold">৳0</span>
                 <span className="text-sm text-muted-foreground">/month</span>
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">Includes the full ERP <em>and</em> AI Support.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Try Helpdesk free while we&apos;re in early access.</p>
               <ul className="mt-5 flex-1 space-y-2.5">
-                {["AI Customer-Support widget", "Everything in the ERP", "Unlimited warehouses & users", "One simple bill"].map((f) => (
+                {["AI Customer-Support widget", "Upload docs & PDFs", "Embed on any website", "Priority setup help"].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm"><Check className="size-4 shrink-0 text-success" /> {f}</li>
                 ))}
               </ul>
-              <Link href="/signup" className="mt-6 block rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90">
-                Start free trial
+              <Link href="/contact" className="mt-6 block rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90">
+                Contact us
               </Link>
             </div>
             {/* Standalone */}
@@ -203,8 +202,8 @@ export default function AISupportMarketingPage() {
         <span className="mx-auto grid size-12 place-items-center rounded-xl bg-accent-soft text-accent"><Bot className="size-6" /></span>
         <h2 className="mt-5 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Let AI handle the repetitive questions</h2>
         <p className="mx-auto mt-3 max-w-md text-muted-foreground">Set it up in minutes and give your customers instant answers, day or night.</p>
-        <Link href="/signup" className="mt-7 inline-flex items-center gap-2 rounded-lg bg-accent px-7 py-3.5 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-transform hover:scale-[1.03]">
-          Start your free trial <ArrowRight className="size-4" />
+        <Link href="/contact" className="mt-7 inline-flex items-center gap-2 rounded-lg bg-accent px-7 py-3.5 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/20 transition-transform hover:scale-[1.03]">
+          Get in touch <ArrowRight className="size-4" />
         </Link>
       </section>
 

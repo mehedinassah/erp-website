@@ -316,9 +316,9 @@ export default function LandingPage() {
       <section id="services" className="scroll-mt-20 border-y border-border bg-surface/50 py-20">
         <div className="mx-auto max-w-6xl px-5">
           <div className="mb-12 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Our services</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">One platform, more than one tool</h2>
-            <p className="mx-auto mt-2 max-w-xl text-muted-foreground">Start with the ERP that runs your shop, then switch on powerful add-ons as you grow.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Our products</p>
+            <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Two products, built for growing businesses</h2>
+            <p className="mx-auto mt-2 max-w-xl text-muted-foreground">Run your shop with Perico ERP — and add a 24/7 AI support bot to your own website with Helpdesk. Each is available on its own.</p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
             {/* ERP */}
@@ -341,14 +341,14 @@ export default function LandingPage() {
                 <Sparkles className="size-3 fill-current" /> New
               </span>
               <span className="grid size-12 place-items-center rounded-xl bg-accent-soft text-accent transition-transform group-hover:scale-110"><Bot className="size-6" /></span>
-              <h3 className="mt-4 font-display text-xl font-semibold">AI Customer Support</h3>
+              <h3 className="mt-4 font-display text-xl font-semibold">Helpdesk AI</h3>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                An AI chat widget for your website that answers customers from your own documents — 24/7. Included in the Pro plan, or available standalone.
+                A standalone AI chat widget for <em>your</em> website that answers your customers from your own documents — 24/7. A separate product, sold on its own.
               </p>
               <div className="mt-5 flex items-center justify-between">
-                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">Pro add-on · or standalone</span>
+                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">Separate product</span>
                 <Link href="/services/ai-support" className="inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline">
-                  Learn more <ArrowRight className="size-4" />
+                  Explore Helpdesk <ArrowRight className="size-4" />
                 </Link>
               </div>
             </div>
