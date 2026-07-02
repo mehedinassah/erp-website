@@ -17,6 +17,7 @@ import { ROLE_LABEL, type Role } from "@/lib/enums";
 import { cn } from "@/lib/utils";
 import { ToastProvider } from "@/components/ui/toast";
 import { BillingGuard } from "@/components/app/billing-guard";
+import { Copilot } from "@/components/app/copilot";
 
 type Access = { locked: boolean; onTrial: boolean; daysLeft: number; planName: string; reason: string };
 
@@ -398,6 +399,9 @@ export function AppShell({
       </div>
 
       <BottomNav onMenuClick={() => setMobileOpen(true)} />
+
+      {/* PRO-only in-ERP assistant */}
+      {aiSupport && <Copilot />}
     </div>
     </ToastProvider>
   );
