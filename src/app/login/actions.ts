@@ -23,8 +23,7 @@ export async function loginAction(
     result = await verifyCredentials(email, password);
   } catch {
     return {
-      error:
-        "Sign-in is temporarily unavailable. Please try again in a moment.",
+      error: "Sign-in is temporarily unavailable. Please try again in a moment.",
     };
   }
   if (!result.ok) {
@@ -48,8 +47,7 @@ export async function loginAction(
     });
   } catch {
     return {
-      error:
-        "Sign-in is temporarily unavailable. Please try again in a moment.",
+      error: "Sign-in is temporarily unavailable. Please try again in a moment.",
     };
   }
   redirect("/dashboard");

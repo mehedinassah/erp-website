@@ -11,10 +11,17 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const session = await requireUser();
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: session.tenantId },
-    select: { businessType: true, plan: true, status: true, trialEndsAt: true, currentPeriodEnd: true },
-  });
+  let tenant = null;
+  try {
+    tenant = await prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: { businessType: true, plan: true, status: true, trialEndsAt: true, currentPeriodEnd: true },
+    });
+  } catch (e) {
+    // A transient DB error must not white-screen the whole app. Degrade to
+    // full access; individual pages surface their own errors if needed.
+    console.error("AppLayout: tenant lookup failed:", e);
+  }
   const superAdmin = isSuperAdmin(session.email);
   const access = tenant
     ? accessState(tenant)

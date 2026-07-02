@@ -37,6 +37,8 @@ export async function requireUser(): Promise<SessionPayload> {
 
     return session;
   } catch {
+    // Any failure here (incl. a database outage) must not crash the whole app
+    // with a cryptic error screen — send the user to a clean sign-in page.
     await destroySession();
     redirect("/login");
   }
@@ -107,7 +109,9 @@ export async function verifyCredentials(
       },
     });
   } catch {
-    return { ok: false, reason: "invalid" };
+    // Database unreachable / query failed — surface a clear "temporarily
+    // unavailable" message via the action layer rather than an uncaught 500.
+    throw new Error("AUTH_DB_UNAVAILABLE");
   }
   if (!user || !user.active) return { ok: false, reason: "invalid" };
 
@@ -122,7 +126,7 @@ export async function verifyCredentials(
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
   const isSuper = superAdmins.includes(user.email.toLowerCase());
-  if (!user.tenant || user.tenant.status === "SUSPENDED" && !isSuper)
+  if (!user.tenant || (user.tenant.status === "SUSPENDED" && !isSuper))
     return { ok: false, reason: "suspended" };
 
   return {

@@ -39,7 +39,15 @@ export async function signupAction(
     return { success: false, error: "Passwords do not match." };
 
   // Check email not already taken
-  const existing = await prisma.user.findUnique({ where: { email } });
+  let existing;
+  try {
+    existing = await prisma.user.findUnique({ where: { email } });
+  } catch {
+    return {
+      success: false,
+      error: "Sign-up is temporarily unavailable. Please try again in a moment.",
+    };
+  }
   if (existing)
     return { success: false, error: "That email is already registered. Sign in instead." };
 
