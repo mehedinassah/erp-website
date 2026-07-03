@@ -43,21 +43,28 @@ async function getPnl(tenantId: string, days: number) {
     prisma.expense.findMany({ where: { tenantId, spentAt: { gte: since } } }),
   ]);
 
-  // Net sales (excl. tax) = subtotal - discount, minus returns
-  let revenue = 0;
-  let cogs = 0;
+  // Net sales (excl. tax) = subtotal - discount, minus returns. Sales and
+  // returns are accumulated separately, then net revenue and COGS are clamped
+  // to ≥ 0 so returns matched by date can never push COGS negative and make
+  // gross profit exceed sales (margin > 100%).
+  let salesRevenue = 0;
+  let salesCogs = 0;
   let taxCollected = 0;
   for (const o of orders) {
-    revenue += o.subtotal - o.discount;
+    salesRevenue += o.subtotal - o.discount;
     taxCollected += o.tax;
-    for (const it of o.items) cogs += it.variant.product.costPrice * it.quantity;
+    for (const it of o.items) salesCogs += it.variant.product.costPrice * it.quantity;
   }
+  let returnsRevenue = 0;
+  let returnsCogs = 0;
   for (const r of returns) {
     for (const it of r.items) {
-      revenue -= it.unitPrice * it.quantity;
-      cogs -= it.variant.product.costPrice * it.quantity;
+      returnsRevenue += it.unitPrice * it.quantity;
+      returnsCogs += it.variant.product.costPrice * it.quantity;
     }
   }
+  const revenue = Math.max(0, salesRevenue - returnsRevenue);
+  const cogs = Math.max(0, salesCogs - returnsCogs);
 
   const grossProfit = revenue - cogs;
 

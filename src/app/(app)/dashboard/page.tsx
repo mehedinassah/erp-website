@@ -111,10 +111,13 @@ async function getData(tenantId: string, days: number) {
   }
   const lowStock = [...variantTotals.values()].filter((v) => v.qty <= v.threshold).sort((a, b) => a.qty - b.qty);
 
-  // Sales aggregates over the period
-  let revenue = 0;
-  let cogs = 0;
-  let units = 0;
+  // Sales aggregates over the period. Sales and returns are accumulated
+  // separately so the net figures can be clamped — returns are matched by
+  // return date and may reference sales outside this period/status, which
+  // could otherwise push COGS or units negative (margin > 100%, "-2 units").
+  let salesRevenue = 0;
+  let salesCogs = 0;
+  let salesUnits = 0;
   const productAgg = new Map<string, { name: string; sku: string; units: number; revenue: number; profit: number }>();
   const catAgg = new Map<string, number>();
   const trendMap = new Map<string, number>();
@@ -123,14 +126,14 @@ async function getData(tenantId: string, days: number) {
     trendMap.set(new Date(Date.now() - i * DAY).toISOString().slice(0, 10), 0);
   }
   for (const o of orders) {
-    revenue += o.total;
+    salesRevenue += o.total;
     const key = o.orderDate.toISOString().slice(0, 10);
     if (trendMap.has(key)) trendMap.set(key, (trendMap.get(key) ?? 0) + o.total);
     for (const it of o.items) {
       const cost = it.variant.product.costPrice * it.quantity;
       const rev = it.unitPrice * it.quantity;
-      cogs += cost;
-      units += it.quantity;
+      salesCogs += cost;
+      salesUnits += it.quantity;
       const pid = it.variant.product.id;
       const prev = productAgg.get(pid);
       if (prev) {
@@ -145,17 +148,18 @@ async function getData(tenantId: string, days: number) {
     }
   }
 
-  // Subtract sales returns (net revenue / profit / units, counted by return date)
-  let returnsTotal = 0;
+  // Subtract sales returns (counted by return date).
+  let returnsRevenue = 0;
+  let returnsCogs = 0;
+  let returnsUnits = 0;
   for (const r of returns) {
     const key = r.createdAt.toISOString().slice(0, 10);
     for (const it of r.items) {
       const cost = it.variant.product.costPrice * it.quantity;
       const rev = it.unitPrice * it.quantity;
-      revenue -= rev;
-      cogs -= cost;
-      units -= it.quantity;
-      returnsTotal += rev;
+      returnsRevenue += rev;
+      returnsCogs += cost;
+      returnsUnits += it.quantity;
       if (trendMap.has(key)) trendMap.set(key, (trendMap.get(key) ?? 0) - rev);
       const pid = it.variant.product.id;
       const prev = productAgg.get(pid);
@@ -169,6 +173,12 @@ async function getData(tenantId: string, days: number) {
     }
   }
 
+  // Net figures, clamped so returns can never produce impossible values:
+  // COGS ≥ 0 keeps gross profit ≤ revenue (margin ≤ 100%), and units ≥ 0.
+  const revenue = Math.max(0, salesRevenue - returnsRevenue);
+  const cogs = Math.max(0, salesCogs - returnsCogs);
+  const units = Math.max(0, salesUnits - returnsUnits);
+  const returnsTotal = Math.min(returnsRevenue, salesRevenue);
   const grossProfit = revenue - cogs;
   const margin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
   const orderCount = orders.length;
@@ -183,7 +193,7 @@ async function getData(tenantId: string, days: number) {
     .map(([name, value]) => ({ name, value: Math.max(0, value) }))
     .filter((c) => c.value > 0)
     .sort((a, b) => b.value - a.value);
-  const bestSellers = [...productAgg.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 6);
+  const bestSellers = [...productAgg.values()].filter((p) => p.units > 0 && p.revenue > 0).sort((a, b) => b.revenue - a.revenue).slice(0, 6);
 
   return {
     productCount,
