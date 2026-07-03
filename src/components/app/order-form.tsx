@@ -243,6 +243,16 @@ export function OrderForm({
               </Field>
             )}
 
+            {mode === "sales" && (
+              <Field>
+                <Label htmlFor="markPaid">Payment</Label>
+                <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border p-2.5 text-sm">
+                  <input type="checkbox" id="markPaid" name="markPaid" defaultChecked className="accent-[var(--accent)]" />
+                  Paid in full now (uncheck for credit / due)
+                </label>
+              </Field>
+            )}
+
             <Field>
               <Label htmlFor="notes">Notes</Label>
               <Textarea id="notes" name="notes" rows={2} />

@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { nextDocNumber, withUniqueRetry } from "@/lib/sequence";
 import { getTenantProfile, computeTax } from "@/lib/tenant";
 import { checkAndAlertLowStock } from "@/lib/low-stock-alert";
+import { logAudit } from "@/lib/audit";
 
 export type ScanHit = {
   found: true;
@@ -77,6 +78,22 @@ export async function posCheckout(input: {
   }
   const lines = [...merged.values()];
 
+  // Tenant guard: the warehouse and every variant must belong to this tenant.
+  const warehouse = await prisma.warehouse.findFirst({ where: { id: input.warehouseId, tenantId }, select: { id: true } });
+  if (!warehouse) return { ok: false, error: "Invalid warehouse." };
+  const variantIds = lines.map((l) => l.variantId);
+  const variantRows = await prisma.variant.findMany({
+    where: { id: { in: variantIds }, product: { tenantId } },
+    select: { id: true, size: true, color: true, product: { select: { name: true, sellPrice: true } } },
+  });
+  if (variantRows.length !== variantIds.length) return { ok: false, error: "One or more items are invalid." };
+  const vmap = new Map(variantRows.map((v) => [v.id, v]));
+
+  // Lines sold at a price other than the catalogue price — logged for traceability.
+  const priceOverrides = lines
+    .filter((l) => l.price !== vmap.get(l.variantId)!.product.sellPrice)
+    .map((l) => ({ item: `${vmap.get(l.variantId)!.product.name} (${vmap.get(l.variantId)!.size}/${vmap.get(l.variantId)!.color})`, listPrice: vmap.get(l.variantId)!.product.sellPrice, soldAt: l.price }));
+
   const subtotal = lines.reduce((s, i) => s + i.quantity * i.price, 0);
   const discount = Math.max(0, Math.trunc(input.discount ?? 0));
   const taxable = Math.max(0, subtotal - discount);
@@ -89,25 +106,6 @@ export async function posCheckout(input: {
   try {
     const order = await withUniqueRetry(() =>
       prisma.$transaction(async (tx) => {
-        for (const line of lines) {
-          const level = await tx.stockLevel.findUnique({
-            where: {
-              variantId_warehouseId: {
-                variantId: line.variantId,
-                warehouseId: input.warehouseId,
-              },
-            },
-            include: { variant: { include: { product: true } } },
-          });
-          const available = level?.quantity ?? 0;
-          if (available < line.quantity) {
-            const name = level
-              ? `${level.variant.product.name} (${level.variant.size}/${level.variant.color})`
-              : "an item";
-            throw new Error(`Not enough stock for ${name}: ${available} left.`);
-          }
-        }
-
         const orderNumber = await nextDocNumber(tx, {
           model: "salesOrder",
           field: "orderNumber",
@@ -119,6 +117,8 @@ export async function posCheckout(input: {
           data: {
             orderNumber,
             status: "FULFILLED",
+            paymentStatus: "PAID",
+            amountPaid: total,
             warehouseId: input.warehouseId,
             subtotal,
             discount,
@@ -136,16 +136,20 @@ export async function posCheckout(input: {
           },
         });
 
+        // Atomic guarded decrement — prevents overselling under concurrency.
         for (const line of lines) {
-          await tx.stockLevel.update({
-            where: {
-              variantId_warehouseId: {
-                variantId: line.variantId,
-                warehouseId: input.warehouseId,
-              },
-            },
+          const res = await tx.stockLevel.updateMany({
+            where: { variantId: line.variantId, warehouseId: input.warehouseId, quantity: { gte: line.quantity } },
             data: { quantity: { decrement: line.quantity } },
           });
+          if (res.count === 0) {
+            const v = vmap.get(line.variantId)!;
+            const lvl = await tx.stockLevel.findUnique({
+              where: { variantId_warehouseId: { variantId: line.variantId, warehouseId: input.warehouseId } },
+              select: { quantity: true },
+            });
+            throw new Error(`Not enough stock for ${v.product.name} (${v.size}/${v.color}): ${lvl?.quantity ?? 0} left.`);
+          }
           await tx.stockMovement.create({
             data: {
               variantId: line.variantId,
@@ -164,6 +168,15 @@ export async function posCheckout(input: {
     );
 
     checkAndAlertLowStock(tenantId);
+    await logAudit({
+      tenantId,
+      userId: session.userId,
+      action: "CREATE",
+      entity: "SalesOrder",
+      entityId: order.id,
+      entityRef: order.orderNumber,
+      changes: { total, itemCount: lines.length, paymentStatus: "PAID", ...(priceOverrides.length ? { priceOverrides } : {}) },
+    });
     revalidatePath("/sales");
     revalidatePath("/stock");
     revalidatePath("/");

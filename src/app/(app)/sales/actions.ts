@@ -42,6 +42,7 @@ export async function createSalesOrder(
 
   if (!warehouseId) return { error: "Choose a warehouse to fulfil from." };
   if (items.length === 0) return { error: "Add at least one line item." };
+  const markPaid = formData.get("markPaid") === "on";
 
   // Merge duplicate variants so the stock check is accurate
   const merged = new Map<string, LineItem>();
@@ -51,6 +52,22 @@ export async function createSalesOrder(
     else merged.set(it.variantId, { ...it });
   }
   const lines = [...merged.values()];
+
+  // Tenant guard: the warehouse and every variant must belong to this tenant.
+  const warehouse = await prisma.warehouse.findFirst({ where: { id: warehouseId, tenantId }, select: { id: true } });
+  if (!warehouse) return { error: "Invalid warehouse." };
+  const variantIds = lines.map((l) => l.variantId);
+  const variantRows = await prisma.variant.findMany({
+    where: { id: { in: variantIds }, product: { tenantId } },
+    select: { id: true, size: true, color: true, product: { select: { name: true, sellPrice: true } } },
+  });
+  if (variantRows.length !== variantIds.length) return { error: "One or more items are invalid." };
+  const vmap = new Map(variantRows.map((v) => [v.id, v]));
+
+  // Lines sold at a price other than the catalogue price — logged for traceability.
+  const priceOverrides = lines
+    .filter((l) => l.price !== vmap.get(l.variantId)!.product.sellPrice)
+    .map((l) => ({ item: `${vmap.get(l.variantId)!.product.name} (${vmap.get(l.variantId)!.size}/${vmap.get(l.variantId)!.color})`, listPrice: vmap.get(l.variantId)!.product.sellPrice, soldAt: l.price }));
 
   const subtotal = lines.reduce((s, i) => s + i.quantity * i.price, 0);
   const taxable = Math.max(0, subtotal - discount);
@@ -65,25 +82,6 @@ export async function createSalesOrder(
   try {
     const order = await withUniqueRetry(() =>
       prisma.$transaction(async (tx) => {
-        // Stock availability check + deduction
-        for (const line of lines) {
-          const level = await tx.stockLevel.findUnique({
-            where: {
-              variantId_warehouseId: { variantId: line.variantId, warehouseId },
-            },
-            include: { variant: { include: { product: true } } },
-          });
-          const available = level?.quantity ?? 0;
-          if (available < line.quantity) {
-            const name = level
-              ? `${level.variant.product.name} (${level.variant.size}/${level.variant.color})`
-              : "an item";
-            throw new Error(
-              `Not enough stock for ${name}: ${available} available, ${line.quantity} requested.`,
-            );
-          }
-        }
-
         orderNumber = await nextDocNumber(tx, {
           model: "salesOrder",
           field: "orderNumber",
@@ -95,6 +93,8 @@ export async function createSalesOrder(
           data: {
             orderNumber,
             status: "FULFILLED",
+            paymentStatus: markPaid ? "PAID" : "UNPAID",
+            amountPaid: markPaid ? total : 0,
             customerId,
             warehouseId,
             notes,
@@ -114,13 +114,22 @@ export async function createSalesOrder(
           },
         });
 
+        // Atomic guarded decrement — prevents overselling under concurrency.
         for (const line of lines) {
-          await tx.stockLevel.update({
-            where: {
-              variantId_warehouseId: { variantId: line.variantId, warehouseId },
-            },
+          const res = await tx.stockLevel.updateMany({
+            where: { variantId: line.variantId, warehouseId, quantity: { gte: line.quantity } },
             data: { quantity: { decrement: line.quantity } },
           });
+          if (res.count === 0) {
+            const v = vmap.get(line.variantId)!;
+            const lvl = await tx.stockLevel.findUnique({
+              where: { variantId_warehouseId: { variantId: line.variantId, warehouseId } },
+              select: { quantity: true },
+            });
+            throw new Error(
+              `Not enough stock for ${v.product.name} (${v.size}/${v.color}): ${lvl?.quantity ?? 0} available, ${line.quantity} requested.`,
+            );
+          }
           await tx.stockMovement.create({
             data: {
               variantId: line.variantId,
@@ -155,7 +164,7 @@ export async function createSalesOrder(
     entity: "SalesOrder",
     entityId: id,
     entityRef: orderNumber,
-    changes: { total, itemCount: lines.length },
+    changes: { total, itemCount: lines.length, paymentStatus: markPaid ? "PAID" : "UNPAID", ...(priceOverrides.length ? { priceOverrides } : {}) },
   });
 
   revalidatePath("/sales");
@@ -166,10 +175,11 @@ export async function createSalesOrder(
 
 /** Admin only. Deletes a sale and restores the sold stock to the warehouse. */
 export async function deleteSalesOrder(id: string) {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
 
-  const so = await prisma.salesOrder.findUnique({
-    where: { id },
+  // Tenant guard: only delete an order that belongs to this tenant.
+  const so = await prisma.salesOrder.findFirst({
+    where: { id, tenantId: session.tenantId },
     include: { items: true },
   });
   if (!so) redirect("/sales");
