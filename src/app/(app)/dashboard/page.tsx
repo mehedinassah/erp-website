@@ -73,7 +73,10 @@ async function getData(tenantId: string, days: number) {
         },
       }),
       prisma.salesReturn.findMany({
-        where: { tenantId, createdAt: { gte: since } },
+        // Scope returns to the SAME sales set as revenue (fulfilled orders in
+        // the period), so a return for an out-of-window sale can't subtract
+        // revenue/COGS/units that were never counted here.
+        where: { tenantId, salesOrder: { status: "FULFILLED", orderDate: { gte: since } } },
         include: {
           items: { include: { variant: { include: { product: { include: { category: true } } } } } },
         },
@@ -182,7 +185,9 @@ async function getData(tenantId: string, days: number) {
   const grossProfit = revenue - cogs;
   const margin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
   const orderCount = orders.length;
-  const aov = orderCount > 0 ? Math.round(revenue / orderCount) : 0;
+  // Average order value is gross sales ÷ orders (returns aren't orders, so
+  // they must not shrink the per-order average).
+  const aov = orderCount > 0 ? Math.round(salesRevenue / orderCount) : 0;
 
   const trend = [...trendMap.entries()].map(([date, total]) => ({
     date,

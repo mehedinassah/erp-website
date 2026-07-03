@@ -5,11 +5,12 @@ import { useFormStatus } from "react-dom";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Trash2, Loader2 } from "lucide-react";
 import { Button } from "./button";
+import { Input } from "./input";
 
-function ConfirmSubmit({ label }: { label: string }) {
+function ConfirmSubmit({ label, disabled }: { label: string; disabled?: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="destructive" disabled={pending}>
+    <Button type="submit" variant="destructive" disabled={pending || disabled}>
       {pending && <Loader2 className="size-4 animate-spin" />}
       {label}
     </Button>
@@ -23,6 +24,7 @@ export function DeleteButton({
   label = "Delete",
   confirmLabel = "Delete",
   description,
+  confirmPhrase,
 }: {
   action: () => Promise<void>;
   entity: string;
@@ -30,10 +32,22 @@ export function DeleteButton({
   label?: string;
   confirmLabel?: string;
   description?: string;
+  /** If set, the confirm button stays disabled until the user types this phrase. */
+  confirmPhrase?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
+  const locked = confirmPhrase
+    ? typed.trim().toUpperCase() !== confirmPhrase.toUpperCase()
+    : false;
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) setTyped("");
+      }}
+    >
       <Dialog.Trigger asChild>
         <Button
           variant="outline"
@@ -57,12 +71,28 @@ export function DeleteButton({
             )}
             {description ?? "This action cannot be undone."}
           </Dialog.Description>
+          {confirmPhrase && (
+            <div className="mt-4">
+              <label htmlFor="confirm-phrase" className="text-xs text-muted-foreground">
+                Type <span className="font-semibold text-foreground">{confirmPhrase}</span> to confirm
+              </label>
+              <Input
+                id="confirm-phrase"
+                autoFocus
+                autoComplete="off"
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                placeholder={confirmPhrase}
+                className="mt-1"
+              />
+            </div>
+          )}
           <div className="mt-6 flex justify-end gap-2">
             <Dialog.Close asChild>
               <Button variant="outline">Cancel</Button>
             </Dialog.Close>
             <form action={action}>
-              <ConfirmSubmit label={confirmLabel} />
+              <ConfirmSubmit label={confirmLabel} disabled={locked} />
             </form>
           </div>
         </Dialog.Content>

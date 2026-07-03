@@ -37,7 +37,9 @@ async function getPnl(tenantId: string, days: number) {
       include: { items: { include: { variant: { include: { product: true } } } } },
     }),
     prisma.salesReturn.findMany({
-      where: { tenantId, createdAt: { gte: since } },
+      // Match the sales set (fulfilled orders in the period) so returns can't
+      // subtract against sales that fall outside the window.
+      where: { tenantId, salesOrder: { status: "FULFILLED", orderDate: { gte: since } } },
       include: { items: { include: { variant: { include: { product: true } } } } },
     }),
     prisma.expense.findMany({ where: { tenantId, spentAt: { gte: since } } }),

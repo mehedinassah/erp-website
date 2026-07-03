@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { BUSINESS_TYPES, STARTER_CATEGORIES, type BusinessType } from "@/lib/enums";
 
 function slugify(s: string) {
   return s
@@ -27,6 +28,10 @@ export async function signupAction(
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  const businessTypeRaw = String(formData.get("businessType") ?? "");
+  const businessType: BusinessType = (BUSINESS_TYPES as readonly string[]).includes(businessTypeRaw)
+    ? (businessTypeRaw as BusinessType)
+    : "GENERAL";
 
   // Validation
   if (!businessName) return { success: false, error: "Business name is required." };
@@ -60,6 +65,7 @@ export async function signupAction(
         data: {
           name: businessName,
           slug,
+          businessType,
           plan: "TRIAL",
           status: "ACTIVE",
           trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day free trial
@@ -76,8 +82,9 @@ export async function signupAction(
         },
       });
 
-      // Bootstrap so the new business can start immediately:
-      // a default warehouse + a starter category (both editable/removable later).
+      // Bootstrap so the new business can start immediately: a default
+      // warehouse + starter categories matched to the chosen business type
+      // (all editable/removable later).
       await tx.warehouse.create({
         data: {
           name: "Main Store",
@@ -86,8 +93,13 @@ export async function signupAction(
           tenantId: tenant.id,
         },
       });
-      await tx.category.create({
-        data: { name: "General", slug: "general", tenantId: tenant.id },
+      const starters = STARTER_CATEGORIES[businessType] ?? STARTER_CATEGORIES.GENERAL;
+      await tx.category.createMany({
+        data: starters.map((catName) => ({
+          name: catName,
+          slug: slugify(catName),
+          tenantId: tenant.id,
+        })),
       });
     });
   } catch (e) {

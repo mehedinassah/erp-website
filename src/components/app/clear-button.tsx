@@ -17,6 +17,7 @@ export function ClearButton({
       label="Clear page"
       confirmLabel="Clear all"
       description={description}
+      confirmPhrase="CLEAR"
     />
   );
 }

@@ -102,7 +102,7 @@ export default async function LoginPage({
               className="text-[0.62rem] font-semibold uppercase tracking-[0.32em]"
               style={{ color: "rgba(161,98,7,0.85)" }}
             >
-              Enterprise Resource Planning System
+              Business Management System
             </p>
             <h1
               className="font-display text-[2.6rem] font-semibold leading-[1.1] tracking-tight"

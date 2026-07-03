@@ -4,7 +4,9 @@ import { useActionState } from "react";
 import { signupAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { BUSINESS_TYPES, BUSINESS_TYPE_LABEL, type BusinessType } from "@/lib/enums";
 
 const initialState = { error: undefined as string | undefined, success: false };
 
@@ -36,6 +38,19 @@ export function SignupForm() {
           autoComplete="organization"
           required
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="businessType">What do you sell?</Label>
+        <Select id="businessType" name="businessType" defaultValue="" required>
+          <option value="" disabled>Select your business type</option>
+          {BUSINESS_TYPES.map((t) => (
+            <option key={t} value={t}>{BUSINESS_TYPE_LABEL[t as BusinessType]}</option>
+          ))}
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          This sets up the right catalogue fields and starter categories. You can change it later.
+        </p>
       </div>
 
       <div className="space-y-1.5">

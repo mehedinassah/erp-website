@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
-import { BUSINESS_TYPES } from "@/lib/enums";
-import type { ActionState } from "@/lib/validation";
+import { BUSINESS_TYPES, STARTER_CATEGORIES, type BusinessType } from "@/lib/enums";
+import { slugify, type ActionState } from "@/lib/validation";
 
 const str = (fd: FormData, key: string) => {
   const v = String(fd.get(key) ?? "").trim();
@@ -33,6 +33,12 @@ export async function updateBusinessProfile(
     String(formData.get("invoicePrefix") ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "") || "SO";
   const taxLabel = String(formData.get("taxLabel") ?? "").trim() || "VAT";
 
+  const before = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { businessType: true },
+  });
+  const typeChanged = before?.businessType !== businessType;
+
   try {
     await prisma.tenant.update({
       where: { id: tenantId },
@@ -52,6 +58,22 @@ export async function updateBusinessProfile(
     });
   } catch {
     return { error: "Could not save your business profile. Please try again." };
+  }
+
+  // When the vertical changes, add the new type's starter categories that are
+  // missing (never removes existing ones — safe, non-destructive).
+  if (typeChanged) {
+    try {
+      const starters = STARTER_CATEGORIES[businessType as BusinessType] ?? STARTER_CATEGORIES.GENERAL;
+      const existing = await prisma.category.findMany({ where: { tenantId }, select: { slug: true } });
+      const have = new Set(existing.map((c) => c.slug));
+      const toCreate = starters
+        .map((catName) => ({ name: catName, slug: slugify(catName), tenantId }))
+        .filter((c) => !have.has(c.slug));
+      if (toCreate.length) await prisma.category.createMany({ data: toCreate });
+    } catch {
+      // Non-critical — the profile already saved; categories can be added manually.
+    }
   }
 
   await logAudit({

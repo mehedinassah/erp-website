@@ -30,7 +30,7 @@ model Tenant {
   helpdeckApiKey   String?                // Helpdeck API key (server-side only, never sent to browser)
 
   // Business profile — appears on invoices, quotations & purchase orders
-  businessType  String   @default("CLOTHING") // CLOTHING | GROCERY | PHARMACY | GENERAL
+  businessType  String   @default("GENERAL") // CLOTHING | JEWELLERY | GROCERY | PHARMACY | ELECTRONICS | GENERAL
   legalName     String?
   email         String?
   phone         String?
