@@ -33,7 +33,9 @@ function range(period: Period): { gte: Date; lte: Date } {
   }
 }
 
-const SALE_STATUSES = ["CONFIRMED", "FULFILLED"];
+// Match the rest of the app (dashboard, P&L, POS): a "sale" is a fulfilled
+// order. Keeping this in sync ensures the Copilot's numbers equal the dashboard.
+const SALE_STATUSES = ["FULFILLED"];
 
 async function countLowStock(tenantId: string): Promise<number> {
   const variants = await prisma.variant.findMany({

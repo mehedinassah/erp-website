@@ -27,6 +27,7 @@ function parseBase(formData: FormData) {
     costPrice: formData.get("costPrice"),
     sellPrice: formData.get("sellPrice"),
     targetStock: formData.get("targetStock") ?? 0,
+    lowStockThreshold: formData.get("lowStockThreshold") ?? 8,
     trackExpiry: formData.get("trackExpiry") === "on",
     status: formData.get("status") ?? "ACTIVE",
   });
@@ -95,6 +96,7 @@ export async function createProduct(
             size: v.size,
             color: v.color,
             colorHex: v.colorHex ?? null,
+            lowStockThreshold: data.lowStockThreshold,
           },
         });
         // Initialise zero stock in every warehouse
@@ -154,6 +156,11 @@ export async function updateProduct(
         trackExpiry: data.trackExpiry,
         status: data.status,
       },
+    });
+    // Apply the low-stock threshold to all of this product's variants.
+    await prisma.variant.updateMany({
+      where: { productId: id },
+      data: { lowStockThreshold: data.lowStockThreshold },
     });
   } catch {
     return { error: "Could not save changes. The SKU may already be in use." };

@@ -1,15 +1,12 @@
 // All money is stored as whole BDT taka (Int). These helpers format for display.
 
-const bdt = new Intl.NumberFormat("en-BD", {
-  style: "currency",
-  currency: "BDT",
-  maximumFractionDigits: 0,
-});
-
-/** Format an integer amount of taka as "৳1,250". */
+/**
+ * Format an integer amount of taka as "৳1,250".
+ * Delegates to formatTaka so the whole app uses one consistent South-Asian
+ * (lakh/crore) digit grouping — e.g. ৳10,00,000, not ৳1,000,000.
+ */
 export function formatBDT(amount: number): string {
-  // Intl renders "BDT" or "৳" depending on the runtime; normalise to the symbol.
-  return bdt.format(amount).replace("BDT", "৳").replace(/\s/g, "");
+  return formatTaka(amount);
 }
 
 /** Compact form for KPI cards: ৳1.2k, ৳3.4L (lakh), ৳1.1Cr. */

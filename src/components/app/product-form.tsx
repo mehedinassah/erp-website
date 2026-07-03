@@ -29,6 +29,7 @@ type Defaults = {
   costPrice?: number;
   sellPrice?: number;
   targetStock?: number;
+  lowStockThreshold?: number;
   trackExpiry?: boolean;
   status?: string;
 };
@@ -319,6 +320,11 @@ export function ProductForm({
               <Label htmlFor="targetStock">Target stock level</Label>
               <Input id="targetStock" name="targetStock" type="number" min={0} defaultValue={defaults.targetStock ?? 0} className="tabular" />
               <p className="mt-1 text-xs text-muted-foreground">How many units you aim to keep in stock (0 = no target).</p>
+            </Field>
+            <Field>
+              <Label htmlFor="lowStockThreshold">Low-stock alert threshold</Label>
+              <Input id="lowStockThreshold" name="lowStockThreshold" type="number" min={0} defaultValue={defaults.lowStockThreshold ?? 8} className="tabular" />
+              <p className="mt-1 text-xs text-muted-foreground">Flag a variant as low when its stock falls to or below this. Drives dashboard alerts &amp; reorder suggestions. Applies to all variants.</p>
             </Field>
             {expiryAvailable && (
               <label className="flex cursor-pointer items-start gap-2 rounded-md border border-border p-3 text-sm">

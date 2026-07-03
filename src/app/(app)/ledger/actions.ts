@@ -118,6 +118,13 @@ export async function addEntry(
     return { error: "Invalid entry type." };
   if (amount <= 0) return { error: "Enter an amount greater than zero." };
 
+  // Tenant guard: the target account must belong to the caller's tenant.
+  const account = await prisma.ledgerAccount.findFirst({
+    where: { id: ledgerId, tenantId: session.tenantId },
+    select: { id: true },
+  });
+  if (!account) return { error: "Account not found." };
+
   await prisma.ledgerEntry.create({
     data: {
       ledgerId,
@@ -141,9 +148,15 @@ export async function updateEntry(
   fd: FormData,
 ): Promise<ActionState> {
   const session = await requireRole([...MANAGER]);
-  void session; // tenantId not needed for entry update (ledgerId FK check is implicit)
   const amount = int(fd, "amount");
   if (amount <= 0) return { error: "Enter an amount greater than zero." };
+
+  // Tenant guard: the entry's account must belong to the caller's tenant.
+  const owned = await prisma.ledgerEntry.findFirst({
+    where: { id: entryId, ledger: { tenantId: session.tenantId } },
+    select: { id: true },
+  });
+  if (!owned) return { error: "Entry not found." };
 
   const entry = await prisma.ledgerEntry.update({
     where: { id: entryId },
@@ -163,8 +176,11 @@ export async function updateEntry(
 }
 
 export async function deleteEntry(id: string) {
-  const _session = await requireRole(["ADMIN"]);
-  const entry = await prisma.ledgerEntry.findUnique({ where: { id } });
+  const session = await requireRole(["ADMIN"]);
+  // Tenant guard: only delete an entry whose account belongs to this tenant.
+  const entry = await prisma.ledgerEntry.findFirst({
+    where: { id, ledger: { tenantId: session.tenantId } },
+  });
   if (!entry) return;
   await prisma.ledgerEntry.delete({ where: { id } });
   revalidatePath(`/ledger/${entry.ledgerId}`);

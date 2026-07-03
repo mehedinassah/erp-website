@@ -20,7 +20,10 @@ export default async function EditProductPage({
   const { id } = await params;
 
   const [product, categories, biz] = await Promise.all([
-    prisma.product.findFirst({ where: { id, tenantId } }),
+    prisma.product.findFirst({
+      where: { id, tenantId },
+      include: { variants: { take: 1, select: { lowStockThreshold: true } } },
+    }),
     prisma.category.findMany({
       where: { tenantId },
       orderBy: { name: "asc" },
@@ -60,6 +63,7 @@ export default async function EditProductPage({
           costPrice: product.costPrice,
           sellPrice: product.sellPrice,
           targetStock: product.targetStock,
+          lowStockThreshold: product.variants[0]?.lowStockThreshold ?? 8,
           trackExpiry: product.trackExpiry,
           status: product.status,
         }}
