@@ -124,14 +124,33 @@ async function getData(tenantId: string, days: number) {
   const productAgg = new Map<string, { name: string; sku: string; units: number; revenue: number; profit: number }>();
   const catAgg = new Map<string, number>();
   const trendMap = new Map<string, number>();
-  const buckets = days > 0 ? days : 30;
+  // A fixed period buckets exactly `days` days. "All time" (days === 0) must
+  // span the real sales history — earliest order through today — otherwise the
+  // chart only covers a trailing 30-day window and looks empty while the KPIs
+  // report older sales (all-time revenue > 0 but a flat trend line). Orders are
+  // fetched ordered by date asc, so orders[0] is the earliest. Cap at ~1 year
+  // of daily buckets to keep the payload sane.
+  let buckets: number;
+  if (days > 0) {
+    buckets = days;
+  } else if (orders.length) {
+    const spanDays = Math.floor((Date.now() - orders[0].orderDate.getTime()) / DAY) + 1;
+    buckets = Math.min(Math.max(spanDays, 30), 366);
+  } else {
+    buckets = 30;
+  }
   for (let i = buckets - 1; i >= 0; i--) {
     trendMap.set(new Date(Date.now() - i * DAY).toISOString().slice(0, 10), 0);
   }
   for (const o of orders) {
-    salesRevenue += o.total;
+    // Revenue is net of tax (subtotal − discount), matching the P&L's "net
+    // sales". Collected tax is a liability, not income, so it must not inflate
+    // the dashboard's Revenue/AOV/trend. Returns below subtract the same
+    // (pre-tax) basis, keeping the whole card internally consistent.
+    const net = o.subtotal - o.discount;
+    salesRevenue += net;
     const key = o.orderDate.toISOString().slice(0, 10);
-    if (trendMap.has(key)) trendMap.set(key, (trendMap.get(key) ?? 0) + o.total);
+    if (trendMap.has(key)) trendMap.set(key, (trendMap.get(key) ?? 0) + net);
     for (const it of o.items) {
       const cost = it.variant.product.costPrice * it.quantity;
       const rev = it.unitPrice * it.quantity;

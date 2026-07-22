@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, Shirt, Upload, Download } from "lucide-react";
+import { Plus, Search, Shirt, Upload, Download, Info } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { canManageProducts, canDelete } from "@/lib/permissions";
@@ -19,7 +19,7 @@ import { Badge, statusTone } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 
-type SP = { q?: string; category?: string; page?: string };
+type SP = { q?: string; category?: string; page?: string; archived?: string; deleted?: string };
 
 export default async function ProductsPage({
   searchParams,
@@ -102,6 +102,17 @@ export default async function ProductsPage({
           />
         )}
       </PageHeader>
+
+      {sp.archived && (
+        <div role="status" className="mb-4 flex items-start gap-2 rounded-md border border-border bg-muted/40 px-3 py-2.5 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0" />
+          <span>
+            This product had sales or purchase history, so it was <strong>archived</strong> instead of
+            deleted — this keeps your revenue, profit and order records accurate. Archived products stay
+            out of the active catalogue and can be restored anytime.
+          </span>
+        </div>
+      )}
 
       {/* Filters (GET form — works without JS) */}
       <form className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">

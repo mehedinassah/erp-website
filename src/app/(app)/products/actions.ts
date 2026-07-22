@@ -183,8 +183,12 @@ export async function archiveProduct(id: string) {
   revalidatePath(`/products/${id}`);
 }
 
-/** Admin only. Permanently deletes a product, its variants, stock, and any
- *  order lines that referenced it (so seeded/placeholder data can be cleared). */
+/** Admin only. Permanently deletes a product that was never transacted. A
+ *  product with sales/purchase history is archived instead of deleted: hard-
+ *  deleting it would strand its order lines (SOItem/POItem have no cascade), so
+ *  the SalesOrder.total would survive while its items vanish — the dashboard
+ *  would keep counting that revenue with zero units and zero COGS (phantom
+ *  "100% margin" orders). Archiving preserves history and keeps totals honest. */
 export async function deleteProduct(id: string) {
   const session = await requireRole(["ADMIN"]);
   const { tenantId } = session;
@@ -198,15 +202,23 @@ export async function deleteProduct(id: string) {
   });
   const variantIds = variants.map((v) => v.id);
 
-  await prisma.$transaction(async (tx) => {
-    if (variantIds.length) {
-      // Remove order lines referencing these variants (no cascade on those FKs)
-      await tx.sOItem.deleteMany({ where: { variantId: { in: variantIds } } });
-      await tx.pOItem.deleteMany({ where: { variantId: { in: variantIds } } });
-    }
-    // Cascades variants → stock levels & movements
-    await tx.product.delete({ where: { id } });
-  });
+  // Any transactional history (sold or purchased)? Then preserve it: archive.
+  const [soldLines, purchasedLines] = variantIds.length
+    ? await Promise.all([
+        prisma.sOItem.count({ where: { variantId: { in: variantIds } } }),
+        prisma.pOItem.count({ where: { variantId: { in: variantIds } } }),
+      ])
+    : [0, 0];
+
+  if (soldLines > 0 || purchasedLines > 0) {
+    await prisma.product.update({ where: { id }, data: { status: "ARCHIVED" } });
+    revalidatePath("/products");
+    revalidatePath(`/products/${id}`);
+    redirect("/products?archived=1");
+  }
+
+  // Never transacted — safe to remove. Cascades variants → stock levels & movements.
+  await prisma.product.delete({ where: { id } });
 
   revalidatePath("/products");
   redirect("/products?deleted=1");

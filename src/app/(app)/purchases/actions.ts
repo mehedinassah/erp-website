@@ -41,6 +41,18 @@ export async function createPurchaseOrder(
   if (!warehouseId) return { error: "Choose a destination warehouse." };
   if (items.length === 0) return { error: "Add at least one line item." };
 
+  // Tenant guards: supplier, warehouse and every variant must belong to this
+  // tenant, so a PO can never reference another business's records.
+  const [supplier, warehouse] = await Promise.all([
+    prisma.supplier.findFirst({ where: { id: supplierId, tenantId }, select: { id: true } }),
+    prisma.warehouse.findFirst({ where: { id: warehouseId, tenantId }, select: { id: true } }),
+  ]);
+  if (!supplier) return { error: "Invalid supplier." };
+  if (!warehouse) return { error: "Invalid warehouse." };
+  const variantIds = [...new Set(items.map((i) => i.variantId))];
+  const validVariants = await prisma.variant.count({ where: { id: { in: variantIds }, product: { tenantId } } });
+  if (validVariants !== variantIds.length) return { error: "One or more items are invalid." };
+
   const total = items.reduce((s, i) => s + i.quantity * i.price, 0);
 
   let id = "";
@@ -89,8 +101,9 @@ export async function createPurchaseOrder(
 export async function receivePurchaseOrder(id: string) {
   const session = await requireRole(["ADMIN", "MANAGER"]);
 
-  const po = await prisma.purchaseOrder.findUnique({
-    where: { id },
+  // Tenant guard: only receive a PO that belongs to the caller's tenant.
+  const po = await prisma.purchaseOrder.findFirst({
+    where: { id, tenantId: session.tenantId },
     include: { items: true },
   });
   if (!po || po.status === "RECEIVED" || po.status === "CANCELLED") return;
@@ -155,8 +168,9 @@ export async function receivePurchaseOrder(id: string) {
 }
 
 export async function cancelPurchaseOrder(id: string) {
-  await requireRole(["ADMIN", "MANAGER"]);
-  const po = await prisma.purchaseOrder.findUnique({ where: { id } });
+  const session = await requireRole(["ADMIN", "MANAGER"]);
+  // Tenant guard: only cancel a PO that belongs to the caller's tenant.
+  const po = await prisma.purchaseOrder.findFirst({ where: { id, tenantId: session.tenantId } });
   if (!po || po.status === "RECEIVED") return;
   await prisma.purchaseOrder.update({
     where: { id },
@@ -168,10 +182,11 @@ export async function cancelPurchaseOrder(id: string) {
 
 /** Admin only. Deletes a PO; reverses any received stock first. */
 export async function deletePurchaseOrder(id: string) {
-  await requireRole(["ADMIN"]);
+  const session = await requireRole(["ADMIN"]);
 
-  const po = await prisma.purchaseOrder.findUnique({
-    where: { id },
+  // Tenant guard: only delete a PO that belongs to the caller's tenant.
+  const po = await prisma.purchaseOrder.findFirst({
+    where: { id, tenantId: session.tenantId },
     include: { items: true },
   });
   if (!po) redirect("/purchases");
