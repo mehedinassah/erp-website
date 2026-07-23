@@ -8,6 +8,10 @@ BDT invoices — all behind a role-based login.
 > **RONG** (রং — “colour”) is a placeholder brand name.
 ---
 
+## 📖 User guides
+
+- [How to record your first sale](docs/how-to-record-your-first-sale.md) — POS checkout and full invoicing, step by step.
+
 ## ✨ Features
 
 - **Dashboard** — live KPIs (30-day revenue, units in stock, active products,
