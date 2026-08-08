@@ -1,4 +1,4 @@
-# RONG — Inventory & Stock Management ERP
+# Perico — Inventory & Stock Management ERP
 
 A production-grade inventory ERP for a Dhaka clothing brand. Manage the full
 catalogue (with size × colour variants), control stock across warehouses, raise
